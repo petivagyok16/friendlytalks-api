@@ -2,10 +2,9 @@ package com.friendlytalks.friendlytalksapi.controller;
 
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,5 +24,14 @@ public class UserController {
 	)
 	public List<User> getAllStudents() {
 		return this.userService.getAllUser();
+	}
+
+	@RequestMapping(
+					method = RequestMethod.POST,
+					produces = MediaType.APPLICATION_JSON_VALUE
+	)
+	@ResponseStatus(HttpStatus.CREATED)
+	public void signUp(@RequestBody User user) {
+		this.userService.signUp(user);
 	}
 }
