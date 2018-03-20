@@ -48,6 +48,7 @@ public class User {
 	}
 
 	// Inner static class for Name property because its unfortunately a different namespace
+	// TODO: eliminate this shit
 	public static class Name {
 
 		private String first;
