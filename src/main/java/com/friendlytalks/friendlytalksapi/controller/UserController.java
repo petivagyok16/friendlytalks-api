@@ -43,7 +43,7 @@ public class UserController {
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
 	@ResponseStatus(HttpStatus.OK)
-	public void signIn(@RequestBody Credentials credentials) {
-		this.userService.signIn(credentials);
+	public User signIn(@RequestBody Credentials credentials) {
+		return this.userService.signIn(credentials);
 	}
 }
