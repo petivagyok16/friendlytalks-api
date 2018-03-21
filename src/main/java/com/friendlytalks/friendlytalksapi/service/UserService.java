@@ -32,7 +32,7 @@ public class UserService {
 		Optional<User> user = this.userRepository.findByUsername(credentials.getUsername());
 
 		if (user.isPresent() && this.checkPassword(credentials.getPassword(), user.get().getPassword())) {
-			return user.get(); // TODO: don't send back the entire user!
+			return user.get();
 		} else {
 			throw new WrongCredentialsException("Wrong username or password!");
 		}
