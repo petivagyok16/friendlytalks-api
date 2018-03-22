@@ -1,7 +1,5 @@
 package com.friendlytalks.friendlytalksapi.model;
 
-import org.jasypt.util.password.StrongPasswordEncryptor;
-
 import javax.validation.constraints.NotEmpty;
 
 public class Credentials {
