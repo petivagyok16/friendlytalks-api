@@ -1,11 +1,12 @@
 package com.friendlytalks.friendlytalksapi.service;
 
+import com.friendlytalks.friendlytalksapi.exceptions.UserAlreadyExistsException;
 import com.friendlytalks.friendlytalksapi.exceptions.WrongCredentialsException;
 import com.friendlytalks.friendlytalksapi.model.Credentials;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
-import org.jasypt.util.password.StrongPasswordEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public class UserService {
 
 //	final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-	StrongPasswordEncryptor passwordEncryptor = new StrongPasswordEncryptor();
+	BCryptPasswordEncoder passwordEncryptor = new BCryptPasswordEncoder();
 	@Autowired private UserRepository userRepository;
 
 	public List<User> getAllUser() {
@@ -24,8 +25,13 @@ public class UserService {
 	}
 
 	public void signUp(User user) {
-		user.setPassword(passwordEncryptor.encryptPassword(user.getPassword()));
-		this.userRepository.insert(user);
+		user.setPassword(passwordEncryptor.encode(user.getPassword()));
+
+		try {
+			this.userRepository.insert(user);
+		} catch (RuntimeException e) {
+			throw new UserAlreadyExistsException("User already exists!");
+		}
 	}
 
 	public User signIn(Credentials credentials) {
@@ -39,6 +45,6 @@ public class UserService {
 	}
 
 	private boolean checkPassword(String inputPassword, String encryptedPassword) {
-		return this.passwordEncryptor.checkPassword(inputPassword, encryptedPassword);
+		return this.passwordEncryptor.matches(inputPassword, encryptedPassword);
 	}
 }
