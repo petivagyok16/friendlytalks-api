@@ -15,8 +15,6 @@ import java.util.Optional;
 @Service("userService")
 public class UserService {
 
-//	final Logger logger = LoggerFactory.getLogger(UserService.class);
-
 	BCryptPasswordEncoder passwordEncryptor = new BCryptPasswordEncoder();
 	@Autowired private UserRepository userRepository;
 
