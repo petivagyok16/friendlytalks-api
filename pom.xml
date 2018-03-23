@@ -9,7 +9,7 @@
 	<packaging>jar</packaging>
 
 	<name>friendlytalks-api</name>
-	<description>API for Friendlytalks</description>
+	<description>API of Friendlytalks</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
