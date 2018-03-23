@@ -1,6 +1,7 @@
 package com.friendlytalks.friendlytalksapi.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.friendlytalks.friendlytalksapi.model.Credentials;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -36,8 +37,8 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 	public Authentication attemptAuthentication(HttpServletRequest req,
 																							HttpServletResponse res) throws AuthenticationException {
 		try {
-			com.friendlytalks.friendlytalksapi.model.User credentials = new ObjectMapper()
-							.readValue(req.getInputStream(), com.friendlytalks.friendlytalksapi.model.User.class);
+			Credentials credentials = new ObjectMapper()
+							.readValue(req.getInputStream(), Credentials.class);
 
 			return authenticationManager.authenticate(
 							new UsernamePasswordAuthenticationToken(
