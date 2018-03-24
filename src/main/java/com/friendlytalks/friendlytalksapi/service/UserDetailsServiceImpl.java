@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 
@@ -26,6 +27,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		if (StringUtils.isEmpty(username)) throw new UsernameNotFoundException("Username is empty");
+
 		Optional<com.friendlytalks.friendlytalksapi.model.User> applicationUser = applicationUserRepository.findByUsername(username);
 
 		if (!applicationUser.isPresent()) {
