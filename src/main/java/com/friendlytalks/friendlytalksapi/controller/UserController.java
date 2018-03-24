@@ -46,4 +46,13 @@ public class UserController {
 	public User signIn(@RequestBody Credentials credentials) {
 		return this.userService.signIn(credentials);
 	}
+
+	@RequestMapping(
+					value = "/me",
+					method = RequestMethod.GET,
+					produces = MediaType.APPLICATION_JSON_VALUE
+	)
+	public User getAuthenticatedUser() {
+		return this.userService.getAuthenticatedUser();
+	}
 }
