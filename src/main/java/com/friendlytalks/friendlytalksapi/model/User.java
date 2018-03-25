@@ -14,8 +14,8 @@ public class User {
 	private String username;
 	private String email;
 	private String password;
-	//	private List<String> tokens; TODO: implement tokens later!
-	private Name name;
+	private String firstName;
+	private String lastName;
 	private String city;
 	private String pictureUrl;
 	private List<String> messages;
@@ -27,7 +27,8 @@ public class User {
 					@JsonProperty("username") String username,
 					@JsonProperty("email") String email,
 					@JsonProperty("password") String password,
-					@JsonProperty("name") Name name,
+					@JsonProperty("firstName") String firstName,
+					@JsonProperty("lastName") String lastName,
 					@JsonProperty("city") String city,
 					@JsonProperty("pictureUrl") String pictureUrl,
 					@JsonProperty("messages") List<String> messages,
@@ -38,44 +39,13 @@ public class User {
 		this.username = username;
 		this.email = email;
 		this.password = password;
-		this.name = name;
+		this.firstName = firstName;
+		this.lastName= lastName;
 		this.city = city;
 		this.pictureUrl = pictureUrl;
 		this.messages = messages;
 		this.relations = relations;
 		this.ratings = ratings;
-	}
-
-	// Inner static class for Name property because its unfortunately a different namespace
-	// TODO: eliminate this shit
-	public static class Name {
-
-		private String first;
-		private String last;
-
-		public Name(
-						@JsonProperty("first") String first,
-						@JsonProperty("last") String last
-		) {
-			this.first = first;
-			this.last = last;
-		}
-
-		public String getFirst() {
-			return first;
-		}
-
-		public void setFirst(String first) {
-			this.first = first;
-		}
-
-		public String getLast() {
-			return last;
-		}
-
-		public void setLast(String last) {
-			this.last = last;
-		}
 	}
 
 	public String getId() {
@@ -109,6 +79,22 @@ public class User {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public void setFirstName(String firstName) {
+		this.firstName = firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
+
+	public void setLastName(String lastName) {
+		this.lastName = lastName;
 	}
 
 	public String getCity() {
@@ -149,13 +135,5 @@ public class User {
 
 	public void setRatings(Rating ratings) {
 		this.ratings = ratings;
-	}
-
-	public Name getName() {
-		return name;
-	}
-
-	public void setName(Name name) {
-		this.name = name;
 	}
 }
