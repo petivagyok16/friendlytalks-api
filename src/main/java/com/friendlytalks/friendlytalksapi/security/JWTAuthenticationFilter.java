@@ -5,9 +5,9 @@ import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
 import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
 import com.friendlytalks.friendlytalksapi.model.Credentials;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
+import com.mongodb.util.JSONParseException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.apache.catalina.connector.CoyoteOutputStream;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,8 +21,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
@@ -56,7 +54,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 											credentials.getPassword(),
 											new ArrayList<>())
 			);
-		} catch (IOException e) {
+		} catch (IOException | JSONParseException e) {
 			throw new RuntimeException(e);
 		}
 	}
