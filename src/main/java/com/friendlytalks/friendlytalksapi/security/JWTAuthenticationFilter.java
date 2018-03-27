@@ -16,7 +16,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,6 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 
 import static com.friendlytalks.friendlytalksapi.security.SecurityConstants.EXPIRATION_TIME;
@@ -34,6 +34,7 @@ import static com.friendlytalks.friendlytalksapi.security.SecurityConstants.TOKE
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 	private AuthenticationManager authenticationManager;
 	private UserRepository userRepository;
+	private static final Logger logger = Logger.getLogger("AuthenticationFilter");
 
 	public JWTAuthenticationFilter(AuthenticationManager authenticationManager, UserRepository userRepository) {
 		this.authenticationManager = authenticationManager;
@@ -44,6 +45,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 	@Override
 	public Authentication attemptAuthentication(HttpServletRequest req,
 																							HttpServletResponse res) throws AuthenticationException {
+		logger.info("--- Attempting Authentication ---");
 		try {
 			Credentials credentials = new ObjectMapper()
 							.readValue(req.getInputStream(), Credentials.class);
@@ -63,7 +65,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 	protected void successfulAuthentication(HttpServletRequest req,
 																					HttpServletResponse res,
 																					FilterChain chain,
-																					Authentication auth) throws IOException, ServletException {
+																					Authentication auth) throws IOException {
 
 		String username = ((User) auth.getPrincipal()).getUsername();
 
@@ -74,6 +76,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 						.signWith(SignatureAlgorithm.HS512, SECRET.getBytes())
 						.compact();
 		res.addHeader(HEADER_STRING, TOKEN_PREFIX + token);
+		logger.info("--- Successful Authentication ---");
 
 		// Picking Response OutputStream & adding the currently authenticated user's data
 		ServletOutputStream output = res.getOutputStream();
@@ -89,5 +92,14 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		} finally {
 			output.close();
 		}
+	}
+
+	@Override
+	protected void unsuccessfulAuthentication(HttpServletRequest request,
+																						HttpServletResponse response,
+																						AuthenticationException failed) throws IOException {
+		ServletOutputStream output = response.getOutputStream();
+		// TODO: wrap this into a response object
+		output.print(ErrorMessages.WRONG_CREDENTIALS);
 	}
 }
