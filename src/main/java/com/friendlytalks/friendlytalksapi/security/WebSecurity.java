@@ -1,5 +1,6 @@
 package com.friendlytalks.friendlytalksapi.security;
 
+import com.friendlytalks.friendlytalksapi.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -20,6 +21,7 @@ import static com.friendlytalks.friendlytalksapi.security.SecurityConstants.SIGN
 public class WebSecurity extends WebSecurityConfigurerAdapter {
 	@Autowired private UserDetailsService userDetailsService;
 	@Autowired private BCryptPasswordEncoder bCryptPasswordEncoder;
+	@Autowired private UserRepository userRepository;
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
@@ -27,7 +29,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 						.antMatchers(HttpMethod.POST, SIGN_UP_URL).permitAll()
 						.anyRequest().authenticated()
 						.and()
-						.addFilter(new JWTAuthenticationFilter(authenticationManager()))
+						.addFilter(new JWTAuthenticationFilter(authenticationManager(), this.userRepository))
 						.addFilter(new JWTAuthorizationFilter(authenticationManager()))
 						// this disables session creation on Spring Security
 						.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
