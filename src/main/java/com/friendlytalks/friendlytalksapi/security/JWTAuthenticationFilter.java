@@ -1,9 +1,13 @@
 package com.friendlytalks.friendlytalksapi.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
+import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
 import com.friendlytalks.friendlytalksapi.model.Credentials;
+import com.friendlytalks.friendlytalksapi.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.apache.catalina.connector.CoyoteOutputStream;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -13,11 +17,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Optional;
 
 
 import static com.friendlytalks.friendlytalksapi.security.SecurityConstants.EXPIRATION_TIME;
@@ -27,9 +35,11 @@ import static com.friendlytalks.friendlytalksapi.security.SecurityConstants.TOKE
 
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 	private AuthenticationManager authenticationManager;
+	private UserRepository userRepository;
 
-	public JWTAuthenticationFilter(AuthenticationManager authenticationManager) {
+	public JWTAuthenticationFilter(AuthenticationManager authenticationManager, UserRepository userRepository) {
 		this.authenticationManager = authenticationManager;
+		this.userRepository = userRepository;
 		this.setFilterProcessesUrl("/api/v1/auth/signin");
 	}
 
@@ -57,11 +67,29 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 																					FilterChain chain,
 																					Authentication auth) throws IOException, ServletException {
 
+		String username = ((User) auth.getPrincipal()).getUsername();
+
+		// Building the authentication token & add to ResponseHeader
 		String token = Jwts.builder()
-						.setSubject(((User) auth.getPrincipal()).getUsername())
+						.setSubject(username)
 						.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
 						.signWith(SignatureAlgorithm.HS512, SECRET.getBytes())
 						.compact();
 		res.addHeader(HEADER_STRING, TOKEN_PREFIX + token);
+
+		// Picking Response OutputStream & adding the currently authenticated user's data
+		ServletOutputStream output = res.getOutputStream();
+
+		try {
+			Optional<com.friendlytalks.friendlytalksapi.model.User> applicationUser = this.userRepository.findByUsername(username);
+
+			if (applicationUser.isPresent()) {
+				output.print(new ObjectMapper().writeValueAsString(applicationUser.get()));
+			} else {
+				throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
+			}
+		} finally {
+			output.close();
+		}
 	}
 }
