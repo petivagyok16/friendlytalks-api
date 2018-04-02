@@ -13,7 +13,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/message")
 public class MessageController {
-	@Autowired MessageService messageService;
+	MessageService messageService;
+
+	@Autowired
+	public MessageController(MessageService messageService) {
+		this.messageService = messageService;
+	}
 
 	@RequestMapping(
 					method = RequestMethod.GET,
