@@ -13,8 +13,14 @@ import java.util.List;
 @RequestMapping("/api/v1/users")
 public class UserController {
 
-	@Autowired private UserService userService;
-	@Autowired private AuthenticationService authService;
+	private UserService userService;
+	private AuthenticationService authService;
+
+	@Autowired
+	public UserController(UserService userService, AuthenticationService authService) {
+		this.userService = userService;
+		this.authService = authService;
+	}
 
 	@RequestMapping(
 					method = RequestMethod.GET,
