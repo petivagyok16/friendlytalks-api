@@ -18,8 +18,13 @@ import java.util.Optional;
 @Service("authService")
 public class AuthenticationService {
 
-	BCryptPasswordEncoder passwordEncryptor = new BCryptPasswordEncoder();
-	@Autowired private UserRepository userRepository;
+	private BCryptPasswordEncoder passwordEncryptor;
+	private UserRepository userRepository;
+
+	public AuthenticationService(BCryptPasswordEncoder passwordEncryptor, UserRepository userRepository) {
+		this.passwordEncryptor = passwordEncryptor;
+		this.userRepository = userRepository;
+	}
 
 	public void signUp(User user) {
 		user.setPassword(passwordEncryptor.encode(user.getPassword()));
