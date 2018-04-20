@@ -34,11 +34,14 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http.cors().and().csrf().disable().authorizeRequests()
 						.antMatchers(HttpMethod.POST, SIGN_UP_URL).permitAll()
+						// Note that swagger ui works only if other filters are disabled
+//						.antMatchers(HttpMethod.GET, "/swagger-ui.html").permitAll()
+//						.antMatchers(HttpMethod.GET, "/v2/api-docs").permitAll()
 						.anyRequest().authenticated()
 						.and()
 						.addFilter(new JWTAuthenticationFilter(authenticationManager(), this.userRepository))
 						.addFilter(new JWTAuthorizationFilter(authenticationManager()))
-						// this disables session creation on Spring Security
+//						 this disables session creation on Spring Security
 						.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
 	}
