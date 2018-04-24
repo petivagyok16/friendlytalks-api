@@ -1,10 +1,17 @@
 package com.friendlytalks.friendlytalksapi.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
+@Getter
+@Setter
+@Data
 public class Rating {
+
 	private RatingContainer my;
 	private RatingContainer given;
 
@@ -16,23 +23,8 @@ public class Rating {
 		this.given = given;
 	}
 
-	public RatingContainer getMy() {
-		return my;
-	}
-
-	public void setMy(RatingContainer my) {
-		this.my = my;
-	}
-
-	public RatingContainer getGiven() {
-		return given;
-	}
-
-	public void setGiven(RatingContainer given) {
-		this.given = given;
-	}
-
-
+	@Getter
+	@Setter
 	public static class RatingContainer {
 
 		private List<String> likes;

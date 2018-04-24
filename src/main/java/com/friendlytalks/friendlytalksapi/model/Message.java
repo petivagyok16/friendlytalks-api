@@ -1,6 +1,9 @@
 package com.friendlytalks.friendlytalksapi.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -8,8 +11,14 @@ import java.util.Date;
 import java.util.List;
 
 @Document(collection = "messages")
+@Data
+@Getter
+@Setter
 public class Message {
-	@Id private String id;
+
+	@Id
+	private String id;
+
 	private String content;
 	private Date created_at;
 	private String user;
@@ -28,48 +37,9 @@ public class Message {
 		this.user = user;
 	}
 
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public String getContent() {
-		return content;
-	}
-
-	public void setContent(String content) {
-		this.content = content;
-	}
-
-	public Date getCreated_at() {
-		return created_at;
-	}
-
-	public void setCreated_at(Date created_at) {
-		this.created_at = created_at;
-	}
-
-	public String getUser() {
-		return user;
-	}
-
-	public void setUser(String user) {
-		this.user = user;
-	}
-
-	public Meta getMeta() {
-		return meta;
-	}
-
-	public void setMeta(Meta meta) {
-		this.meta = meta;
-	}
-
 	// Dislikes and Likes stored as an inline Class inside Message
 	public static class Meta {
+
 		private List<String> dislikes;
 		private List<String> likes;
 
