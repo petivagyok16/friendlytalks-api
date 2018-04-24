@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 
@@ -23,7 +24,7 @@ import static java.util.Collections.emptyList;
  */
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
-	private UserRepository applicationUserRepository;
+	private final UserRepository applicationUserRepository;
 
 	@Autowired
 	public UserDetailsServiceImpl(UserRepository applicationUserRepository) {
@@ -34,11 +35,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		if (StringUtils.isEmpty(username)) throw new UsernameNotFoundException("Username is empty");
 
-		Optional<com.friendlytalks.friendlytalksapi.model.User> applicationUser = applicationUserRepository.findByUsername(username);
+		com.friendlytalks.friendlytalksapi.model.User applicationUser = this.applicationUserRepository.findByUsername(username).block();
 
-		if (!applicationUser.isPresent()) {
+		if (applicationUser == null) {
 			throw new UsernameNotFoundException(ErrorMessages.USER_NOT_FOUND + " - " + username);
 		}
-		return new User(applicationUser.get().getUsername(), applicationUser.get().getPassword(), emptyList());
+		return new User(applicationUser.getUsername(), applicationUser.getPassword(), emptyList());
 	}
 }

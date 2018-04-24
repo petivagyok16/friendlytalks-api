@@ -22,7 +22,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 
@@ -82,10 +81,10 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		ServletOutputStream output = res.getOutputStream();
 
 		try {
-			Optional<com.friendlytalks.friendlytalksapi.model.User> applicationUser = this.userRepository.findByUsername(username);
+			com.friendlytalks.friendlytalksapi.model.User applicationUser = this.userRepository.findByUsername(username).block();
 
-			if (applicationUser.isPresent()) {
-				output.print(new ObjectMapper().writeValueAsString(applicationUser.get()));
+			if (applicationUser != null) {
+				output.print(new ObjectMapper().writeValueAsString(applicationUser));
 			} else {
 				throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
 			}

@@ -6,8 +6,7 @@ import com.friendlytalks.friendlytalksapi.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -23,7 +22,7 @@ public class UserController {
 	}
 
 	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-	public List<User> getAllUser() {
+	public Flux<User> getAllUser() {
 		return this.userService.getAllUser();
 	}
 }

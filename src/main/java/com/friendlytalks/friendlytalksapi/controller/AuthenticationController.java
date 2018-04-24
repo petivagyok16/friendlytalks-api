@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 /**
  * Signin endpoint is not necessary here because JWTAuthenticationFilter handles the /api/v1/auth/signin endpoint.
@@ -35,7 +36,7 @@ public class AuthenticationController {
 					value = "/me",
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
-	public User getAuthenticatedUser() {
+	public Mono<User> getAuthenticatedUser() {
 		return this.authService.getAuthenticatedUser();
 	}
 }
