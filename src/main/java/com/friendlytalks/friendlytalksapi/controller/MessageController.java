@@ -13,34 +13,28 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/message")
 public class MessageController {
-	MessageService messageService;
+
+	private final MessageService messageService;
 
 	@Autowired
 	public MessageController(MessageService messageService) {
 		this.messageService = messageService;
 	}
 
-	@RequestMapping(
-					method = RequestMethod.GET,
+	@GetMapping(
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
 	public List<Message> getAllMessage() {
 		return this.messageService.getAllMessage();
 	}
 
-	@RequestMapping(
-					method = RequestMethod.POST,
-					produces = MediaType.APPLICATION_JSON_VALUE
-	)
+	@PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseStatus(HttpStatus.CREATED)
 	public void addNew(@RequestBody Message message) {
 		this.messageService.addNew(message);
 	}
 
-	@RequestMapping(
-					value = "/{id}",
-					method = RequestMethod.DELETE
-	)
+	@DeleteMapping(value = "/{id}")
 	@ResponseStatus(HttpStatus.OK)
 	public void deleteMessage(@PathVariable("id") String id) {
 		this.messageService.deleteMessage(id);
@@ -52,10 +46,7 @@ public class MessageController {
 	 * @param id
 	 * @param newMessageContent
 	 */
-	@RequestMapping(
-					value = "/{id}",
-					method = RequestMethod.PATCH
-	)
+	@PatchMapping(value = "/{id}")
 	@ResponseStatus(HttpStatus.OK)
 	public void editMessage(@PathVariable("id") String id, @RequestBody MessageContent newMessageContent) {
 		this.messageService.editMessage(id, newMessageContent.getContent());

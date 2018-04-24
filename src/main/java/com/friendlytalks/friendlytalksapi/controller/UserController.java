@@ -13,8 +13,8 @@ import java.util.List;
 @RequestMapping("/api/v1/users")
 public class UserController {
 
-	private UserService userService;
-	private AuthenticationService authService;
+	private final UserService userService;
+	private final AuthenticationService authService;
 
 	@Autowired
 	public UserController(UserService userService, AuthenticationService authService) {
@@ -22,10 +22,7 @@ public class UserController {
 		this.authService = authService;
 	}
 
-	@RequestMapping(
-					method = RequestMethod.GET,
-					produces = MediaType.APPLICATION_JSON_VALUE
-	)
+	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 	public List<User> getAllUser() {
 		return this.userService.getAllUser();
 	}

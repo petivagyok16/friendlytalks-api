@@ -15,15 +15,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/auth")
 public class AuthenticationController {
 
-	private AuthenticationService authService;
+	private final AuthenticationService authService;
 
+	@Autowired
 	public AuthenticationController(AuthenticationService authService) {
 		this.authService = authService;
 	}
 
-	@RequestMapping(
+	@PostMapping(
 					value = "/signup",
-					method = RequestMethod.POST,
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
 	@ResponseStatus(HttpStatus.CREATED)
@@ -31,9 +31,8 @@ public class AuthenticationController {
 		this.authService.signUp(user);
 	}
 
-	@RequestMapping(
+	@GetMapping(
 					value = "/me",
-					method = RequestMethod.GET,
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
 	public User getAuthenticatedUser() {
