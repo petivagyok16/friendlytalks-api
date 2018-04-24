@@ -12,7 +12,8 @@ import java.util.Optional;
 
 @Service("messageService")
 public class MessageService {
-	private MessageRepository messageRepository;
+
+	private final MessageRepository messageRepository;
 
 	@Autowired
 	public MessageService(MessageRepository messageRepository) {
