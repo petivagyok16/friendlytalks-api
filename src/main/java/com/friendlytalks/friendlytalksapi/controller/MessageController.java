@@ -51,4 +51,14 @@ public class MessageController {
 	public Mono<Void> editMessage(@PathVariable("id") String id, @RequestBody MessageContent newMessageContent) {
 		return this.messageService.editMessage(id, newMessageContent.getContent());
 	}
+
+	/**
+	 * Common login endpoint is also available for basic authentication
+	 *
+	 * @return A publisher serving a message stating successful log in
+	 */
+	@PostMapping("/login")
+	public Flux<Message> login() {
+		return messageService.getDefaultMessage();
+	}
 }

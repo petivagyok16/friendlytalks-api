@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Date;
+
 @Service
 public class MessageService {
 
@@ -44,6 +46,10 @@ public class MessageService {
 		} else {
 			throw new MessageNotFound(ErrorMessages.MESSAGE_NOT_FOUND);
 		}
+	}
+
+	public Flux<Message> getDefaultMessage(){
+		return Flux.just(new Message("asd", "First message", new Date(), null, null));
 	}
 
 }
