@@ -7,8 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/v1/message")
@@ -24,20 +24,20 @@ public class MessageController {
 	@GetMapping(
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
-	public List<Message> getAllMessage() {
+	public Flux<Message> getAllMessage() {
 		return this.messageService.getAllMessage();
 	}
 
 	@PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseStatus(HttpStatus.CREATED)
-	public void addNew(@RequestBody Message message) {
-		this.messageService.addNew(message);
+	public Mono<Void> addNew(@RequestBody Message message) {
+		return this.messageService.addNew(message);
 	}
 
 	@DeleteMapping(value = "/{id}")
 	@ResponseStatus(HttpStatus.OK)
-	public void deleteMessage(@PathVariable("id") String id) {
-		this.messageService.deleteMessage(id);
+	public Mono<Void> deleteMessage(@PathVariable("id") String id) {
+		return this.messageService.deleteMessage(id);
 	}
 
 	/**
@@ -48,7 +48,7 @@ public class MessageController {
 	 */
 	@PatchMapping(value = "/{id}")
 	@ResponseStatus(HttpStatus.OK)
-	public void editMessage(@PathVariable("id") String id, @RequestBody MessageContent newMessageContent) {
-		this.messageService.editMessage(id, newMessageContent.getContent());
+	public Mono<Void> editMessage(@PathVariable("id") String id, @RequestBody MessageContent newMessageContent) {
+		return this.messageService.editMessage(id, newMessageContent.getContent());
 	}
 }

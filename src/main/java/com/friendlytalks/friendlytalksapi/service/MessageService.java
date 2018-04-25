@@ -6,11 +6,10 @@ import com.friendlytalks.friendlytalksapi.model.Message;
 import com.friendlytalks.friendlytalksapi.repository.MessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Optional;
-
-@Service("messageService")
+@Service
 public class MessageService {
 
 	private final MessageRepository messageRepository;
@@ -20,28 +19,28 @@ public class MessageService {
 		this.messageRepository = messageRepository;
 	}
 
-	public List<Message> getAllMessage() {
+	public Flux<Message> getAllMessage() {
 		return messageRepository.findAll();
 	}
 
-	public void addNew(Message message) {
-		this.messageRepository.insert(message);
+	public Mono<Void> addNew(Message message) {
+		return this.messageRepository.insert(message).then();
 	}
 
-	public void deleteMessage(String id) {
+	public Mono<Void> deleteMessage(String id) {
 		try {
-			this.messageRepository.deleteById(id);
+			return this.messageRepository.deleteById(id).then();
 		} catch (RuntimeException e) {
 			throw new MessageNotFound(ErrorMessages.MESSAGE_NOT_FOUND);
 		}
 	}
 
-	public void editMessage(String id, String newContent) {
-		Optional<Message> message = this.messageRepository.findById(id);
+	public Mono<Void> editMessage(String id, String newContent) {
+		Message message = this.messageRepository.findById(id).block();
 
-		if (message.isPresent()) {
-			message.get().setContent(newContent);
-			this.messageRepository.save(message.get());
+		if (message != null) {
+			message.setContent(newContent);
+			return this.messageRepository.save(message).then();
 		} else {
 			throw new MessageNotFound(ErrorMessages.MESSAGE_NOT_FOUND);
 		}
