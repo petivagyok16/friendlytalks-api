@@ -57,7 +57,7 @@ public class MessageController {
 	 *
 	 * @return A publisher serving a message stating successful log in
 	 */
-	@PostMapping("/login")
+	@GetMapping("/test")
 	public Flux<Message> login() {
 		return messageService.getDefaultMessage();
 	}
