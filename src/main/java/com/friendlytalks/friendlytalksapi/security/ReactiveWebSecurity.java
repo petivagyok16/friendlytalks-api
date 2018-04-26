@@ -1,15 +1,15 @@
 package com.friendlytalks.friendlytalksapi.security;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.friendlytalks.friendlytalksapi.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.*;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
@@ -17,33 +17,15 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 @EnableWebFluxSecurity
 public class ReactiveWebSecurity {
 
-	private static final String LOGIN_ROUTE = "/api/v1/message/login";
-	private static final String API_ROUTE = "/api/**";
+	private ReactiveUserDetailsService reactiveUserDetailsService;
+	private BCryptPasswordEncoder bCryptPasswordEncoder;
+	private UserRepository userRepository;
 
-	@Value("${DEFAULT_SECRET}")
-	private String secret;
-
-	@Value("${jwt.expiration_time}")
-	private long expirationTime;
-
-	@Value("${ISSUER}")
-	private String issuer;
-
-	/**
-	 * A custom UserDetailsService to provide quick user rights for Spring Security,
-	 * more formal implementations may be added as separated files and annotated as
-	 * a Spring stereotype.
-	 *
-	 * @return MapReactiveUserDetailsService an InMemory implementation of user details
-	 */
-	@Bean
-	private MapReactiveUserDetailsService userDetailsRepository() {
-		UserDetails user = User.withDefaultPasswordEncoder()
-						.username("user")
-						.password("user")
-						.roles("USER", "ADMIN")
-						.build();
-		return new MapReactiveUserDetailsService(user);
+	@Autowired
+	public ReactiveWebSecurity(ReactiveUserDetailsService reactiveUserDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder, UserRepository userRepository) {
+		this.reactiveUserDetailsService = reactiveUserDetailsService;
+		this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+		this.userRepository = userRepository;
 	}
 
 	/**
@@ -60,22 +42,14 @@ public class ReactiveWebSecurity {
 	@Bean
 	public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
 		return http
-//						.httpBasic().disable()
-//						.formLogin().disable()
-//						.csrf().disable()
-//						.logout().disable()
-//						.authorizeExchange().pathMatchers(HttpMethod.GET, "/api/**").permitAll()
-//						.anyExchange().authenticated()
-//						.and()
-//						.build();
-						.authorizeExchange().pathMatchers(HttpMethod.GET, "/api/**").permitAll()
-						.and()
 						.addFilterAt(basicToJwtAuthenticationFilter(), SecurityWebFiltersOrder.HTTP_BASIC)
 						.addFilterAt(jwtAuthenticationFilter(), SecurityWebFiltersOrder.HTTP_BASIC)
+						.authorizeExchange().pathMatchers(HttpMethod.GET, "/api/**").permitAll()
+						.and()
 						.authorizeExchange()
-						.pathMatchers(HttpMethod.POST, LOGIN_ROUTE)
+						.pathMatchers(HttpMethod.POST, SecurityConstants.SIGN_IN_URL)
 						.authenticated()
-						.pathMatchers(API_ROUTE)
+						.pathMatchers(SecurityConstants.API_ROUTE)
 						.authenticated()
 						.and()
 						.authorizeExchange()
@@ -93,11 +67,16 @@ public class ReactiveWebSecurity {
 	 * @return basic to JWT AuthenticationWebFilter
 	 */
 	@Bean
-	private AuthenticationWebFilter basicToJwtAuthenticationFilter() {
+	protected AuthenticationWebFilter basicToJwtAuthenticationFilter() {
 		AuthenticationWebFilter webFilter =
-						new AuthenticationWebFilter(new UserDetailsRepositoryReactiveAuthenticationManager(userDetailsRepository()));
-		webFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers(HttpMethod.POST, LOGIN_ROUTE));
-		webFilter.setAuthenticationSuccessHandler(new WebFilterChainServerJWTAuthenticationSuccessHandler(secret, expirationTime, issuer));
+						new AuthenticationWebFilter(new UserDetailsRepositoryReactiveAuthenticationManager(this.reactiveUserDetailsService));
+		webFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers(HttpMethod.POST, SecurityConstants.SIGN_IN_URL));
+		webFilter.setAuthenticationSuccessHandler(
+						new WebFilterChainServerJWTAuthenticationSuccessHandler(
+								SecurityConstants.SECRET,
+								SecurityConstants.EXPIRATION_TIME,
+								SecurityConstants.ISSUER
+		));
 		return webFilter;
 	}
 
@@ -108,10 +87,10 @@ public class ReactiveWebSecurity {
 	 * @return JWT AuthenticationWebFilter
 	 */
 	@Bean
-	private AuthenticationWebFilter jwtAuthenticationFilter() {
+	protected AuthenticationWebFilter jwtAuthenticationFilter() {
 		AuthenticationWebFilter webFilter = new AuthenticationWebFilter(new JWTReactiveAuthenticationManager());
-		webFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers(API_ROUTE));
-		webFilter.setAuthenticationConverter(new ServerHttpBearerAuthenticationConverter(secret));
+		webFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers(SecurityConstants.API_ROUTE));
+		webFilter.setAuthenticationConverter(new ServerHttpBearerAuthenticationConverter(SecurityConstants.SECRET));
 		return webFilter;
 	}
 }
