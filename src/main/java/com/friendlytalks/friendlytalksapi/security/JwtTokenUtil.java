@@ -32,18 +32,8 @@ public class JwtTokenUtil implements Serializable {
 
 	private Clock clock = DefaultClock.INSTANCE;
 
-	@Value("${jwt.secret}")
-	private String secret;
-
-	@Value("${jwt.expiration}")
-	private Long expiration;
-
-	public JwtTokenUtil(@Value("${jwt.secret}") String secret, @Value("${jwt.expiration}") Long expiration) {
-		Assert.notNull(secret, "secret cannot be null");
-		Assert.notNull(expiration, "expiration cannot be null");
-		this.secret = secret;
-		this.expiration = expiration;
-	}
+	private String secret = SecurityConstants.SECRET;
+	private Long expiration = SecurityConstants.EXPIRATION_TIME;
 
 	public String getUsernameFromToken(String token) {
 		return getClaimFromToken(token, Claims::getSubject);
