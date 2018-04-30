@@ -31,7 +31,7 @@ public class ReactiveUserDetailsServiceImpl implements ReactiveUserDetailsServic
 	public Mono<UserDetails> findByUsername(String username) throws UsernameNotFoundException {
 		if (StringUtils.isEmpty(username)) throw new UsernameNotFoundException("Username is empty");
 
-		com.friendlytalks.friendlytalksapi.model.User applicationUser = this.applicationUserRepository.findByUsername(username).block();
+		UserDetails applicationUser = this.applicationUserRepository.findByUsername(username).block();
 
 		if (applicationUser == null) {
 			throw new UsernameNotFoundException(ErrorMessages.USER_NOT_FOUND + " - " + username);
