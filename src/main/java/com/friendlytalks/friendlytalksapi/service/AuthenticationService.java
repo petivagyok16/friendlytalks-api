@@ -3,13 +3,20 @@ package com.friendlytalks.friendlytalksapi.service;
 import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
 import com.friendlytalks.friendlytalksapi.exceptions.UserAlreadyExistsException;
 import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
-import com.friendlytalks.friendlytalksapi.exceptions.WrongCredentialsException;
-import com.friendlytalks.friendlytalksapi.model.Credentials;
+
+import static org.springframework.http.ResponseEntity.notFound;
+import static org.springframework.http.ResponseEntity.ok;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
+import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationRequest;
+import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationResponse;
+import com.friendlytalks.friendlytalksapi.security.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -19,11 +26,17 @@ public class AuthenticationService {
 
 	private final BCryptPasswordEncoder passwordEncryptor;
 	private final UserRepository userRepository;
+	private final JwtTokenUtil jwtTokenUtil;
 
 	@Autowired
-	public AuthenticationService(BCryptPasswordEncoder passwordEncryptor, UserRepository userRepository) {
+	public AuthenticationService(
+					BCryptPasswordEncoder passwordEncryptor,
+					UserRepository userRepository,
+					JwtTokenUtil jwtTokenUtil
+	) {
 		this.passwordEncryptor = passwordEncryptor;
 		this.userRepository = userRepository;
+		this.jwtTokenUtil = jwtTokenUtil;
 	}
 
 	public void signUp(User user) {
@@ -36,20 +49,18 @@ public class AuthenticationService {
 		}
 	}
 
-	public Mono<User> signIn(Credentials credentials) {
-		User user = this.userRepository.findByUsername(credentials.getUsername()).block();
-
-		if (user != null && this.checkPassword(credentials.getPassword(), user.getPassword())) {
-			return Mono.just(user);
-		} else {
-			throw new WrongCredentialsException(ErrorMessages.WRONG_CREDENTIALS);
-		}
+	public Mono<ResponseEntity<JwtAuthenticationResponse>> signIn(JwtAuthenticationRequest authenticationRequest) {
+		return this.userRepository.findByUsername(authenticationRequest.getUsername())
+						.map(user -> ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(
+										new JwtAuthenticationResponse(this.jwtTokenUtil.generateToken(user), user.getUsername()))
+						)
+						.defaultIfEmpty(notFound().build());
 	}
 
-	public Mono<User> getAuthenticatedUser() {
+	public Mono<UserDetails> getAuthenticatedUser() {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-		User authenticatedUser = this.userRepository.findByUsername(auth.getName()).block();
+		UserDetails authenticatedUser = this.userRepository.findByUsername(auth.getName()).block();
 
 		if (authenticatedUser != null) {
 			return Mono.just(authenticatedUser);
