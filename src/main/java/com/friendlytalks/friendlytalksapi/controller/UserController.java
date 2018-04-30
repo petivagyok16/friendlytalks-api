@@ -4,25 +4,27 @@ import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.service.AuthenticationService;
 import com.friendlytalks.friendlytalksapi.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping(path = "/api/v1/users", produces = { APPLICATION_JSON_UTF8_VALUE })
 public class UserController {
 
 	private final UserService userService;
-	private final AuthenticationService authService;
 
 	@Autowired
 	public UserController(UserService userService, AuthenticationService authService) {
 		this.userService = userService;
-		this.authService = authService;
 	}
 
-	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-	public Flux<User> getAllUser() {
+	@GetMapping
+	public Mono<ResponseEntity<List<User>>> getAllUser() {
 		return this.userService.getAllUser();
 	}
 }
