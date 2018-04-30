@@ -19,7 +19,7 @@ import javax.naming.AuthenticationException;
  * Signin flow happens there
  */
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/auth")
 public class AuthenticationController {
 
 	private final AuthenticationService authService;
