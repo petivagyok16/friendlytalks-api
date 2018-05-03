@@ -1,5 +1,6 @@
 package com.friendlytalks.friendlytalksapi.controller;
 
+import com.friendlytalks.friendlytalksapi.model.HttpResponseObject;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationRequest;
 import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationResponse;
@@ -43,8 +44,8 @@ public class AuthenticationController {
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
 	@ResponseStatus(HttpStatus.CREATED)
-	public void signUp(@RequestBody User user) {
-		this.authService.signUp(user);
+	public Mono<ResponseEntity<HttpResponseObject<User>>> signUp(@RequestBody User user) {
+		return this.authService.signUp(user);
 	}
 
 	@GetMapping(
