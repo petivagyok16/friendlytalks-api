@@ -1,11 +1,12 @@
 package com.friendlytalks.friendlytalksapi.security;
 
+import com.friendlytalks.friendlytalksapi.service.ReactiveUserDetailsServiceImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
@@ -18,11 +19,11 @@ import java.util.function.Function;
 @Slf4j
 public class CustomAuthenticationConverter implements Function<ServerWebExchange, Mono<Authentication>> {
 
-	private final ReactiveUserDetailsService userDetailsService;
+	private final ReactiveUserDetailsServiceImpl userDetailsService;
 	private final JwtTokenUtil jwtTokenUtil;
 
-	public CustomAuthenticationConverter(ReactiveUserDetailsService userDetailsService, JwtTokenUtil jwtTokenUtil) {
-		Assert.notNull(userDetailsService, "userDetailsService cannot be null");
+	@Autowired
+	public CustomAuthenticationConverter(ReactiveUserDetailsServiceImpl userDetailsService, JwtTokenUtil jwtTokenUtil) {
 		Assert.notNull(userDetailsService, "userDetailsService cannot be null");
 
 		this.userDetailsService = userDetailsService;
@@ -66,6 +67,7 @@ public class CustomAuthenticationConverter implements Function<ServerWebExchange
 				if (jwtTokenUtil.validateToken(authToken)) {
 					log.info("authenticated user " + username + ", setting security context");
 					final String token = authToken;
+
 					return this.userDetailsService.findByUsername(username)
 									.publishOn(Schedulers.parallel())
 									.switchIfEmpty(Mono.error(new BadCredentialsException("Invalid Credentials")))
