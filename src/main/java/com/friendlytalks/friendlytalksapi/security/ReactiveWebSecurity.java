@@ -1,6 +1,7 @@
 package com.friendlytalks.friendlytalksapi.security;
 
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
+import com.friendlytalks.friendlytalksapi.service.ReactiveUserDetailsServiceImpl;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -10,7 +11,6 @@ import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -26,13 +26,13 @@ import org.springframework.util.Assert;
 public class ReactiveWebSecurity {
 	private ServerAuthenticationEntryPoint entryPoint = new JwtAuthenticationEntryPoint();
 
-	private final ReactiveUserDetailsService reactiveUserDetailsService;
+	private final ReactiveUserDetailsServiceImpl reactiveUserDetailsService;
 	private final CustomAuthenticationConverter customAuthenticationConverter;
 
 
 	@Autowired
 	public ReactiveWebSecurity(
-					ReactiveUserDetailsService reactiveUserDetailsService,
+					ReactiveUserDetailsServiceImpl reactiveUserDetailsService,
 					UserRepository userRepository,
 					CustomAuthenticationConverter customAuthenticationConverter
 	) {
@@ -88,7 +88,7 @@ public class ReactiveWebSecurity {
 	}
 
 	private ReactiveAuthenticationManager authenticationManager() {
-		CustomReactiveAuthenticationManager customReactiveAuthenticationManager =  new CustomReactiveAuthenticationManager(this.reactiveUserDetailsService);
+		CustomReactiveAuthenticationManager customReactiveAuthenticationManager = new CustomReactiveAuthenticationManager(this.reactiveUserDetailsService);
 		return customReactiveAuthenticationManager;
 	}
 
