@@ -4,9 +4,6 @@ import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
 import com.friendlytalks.friendlytalksapi.exceptions.UserAlreadyExistsException;
 import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
 
-import static org.springframework.http.ResponseEntity.notFound;
-import static org.springframework.http.ResponseEntity.ok;
-
 import com.friendlytalks.friendlytalksapi.model.HttpResponseObject;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
@@ -41,11 +38,11 @@ public class AuthenticationService {
 		this.jwtTokenUtil = jwtTokenUtil;
 	}
 
-	public Mono<ResponseEntity<HttpResponseObject<User>>> signUp(User user) {
+	public Mono<ResponseEntity<HttpResponseObject<?>>> signUp(User user) {
 		user.setPassword(passwordEncryptor.encode(user.getPassword()));
 
 		try {
-			return this.userRepository.insert(user).map(savedUser -> ok()
+			return this.userRepository.insert(user).map(savedUser -> ResponseEntity.ok()
 							.contentType(MediaType.APPLICATION_JSON_UTF8)
 							.body(new HttpResponseObject<>(savedUser)));
 		} catch (RuntimeException e) {
@@ -55,11 +52,11 @@ public class AuthenticationService {
 
 	public Mono<ResponseEntity<JwtAuthenticationResponse>> signIn(JwtAuthenticationRequest authenticationRequest) {
 		return this.userRepository.findByUsername(authenticationRequest.getUsername())
-						.map(user -> ok()
+						.map(user -> ResponseEntity.ok()
 										.contentType(MediaType.APPLICATION_JSON_UTF8)
 										.body(new JwtAuthenticationResponse(this.jwtTokenUtil.generateToken(user), user.getUsername()))
 						)
-						.defaultIfEmpty(notFound().build());
+						.defaultIfEmpty(ResponseEntity.notFound().build());
 	}
 
 	public Mono<UserDetails> getAuthenticatedUser() {
