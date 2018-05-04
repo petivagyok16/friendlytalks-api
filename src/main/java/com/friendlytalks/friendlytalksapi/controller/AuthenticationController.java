@@ -6,7 +6,6 @@ import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationRequest;
 import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationResponse;
 import com.friendlytalks.friendlytalksapi.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,6 +13,9 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import javax.naming.AuthenticationException;
+import javax.validation.Valid;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
 /**
  * Signin endpoint is not necessary here because JWTAuthenticationFilter handles the /api/v1/auth/signin endpoint.
@@ -41,10 +43,9 @@ public class AuthenticationController {
 
 	@PostMapping(
 					value = "/signup",
-					produces = MediaType.APPLICATION_JSON_VALUE
+					consumes = { APPLICATION_JSON_UTF8_VALUE }
 	)
-	@ResponseStatus(HttpStatus.CREATED)
-	public Mono<ResponseEntity<HttpResponseObject<User>>> signUp(@RequestBody User user) {
+	public Mono<ResponseEntity<HttpResponseObject<?>>> signUp(@RequestBody @Valid User user) {
 		return this.authService.signUp(user);
 	}
 
