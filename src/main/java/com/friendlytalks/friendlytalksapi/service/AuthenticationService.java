@@ -5,6 +5,7 @@ import com.friendlytalks.friendlytalksapi.exceptions.InvalidTokenException;
 import com.friendlytalks.friendlytalksapi.exceptions.UserAlreadyExistsException;
 
 import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
+import com.friendlytalks.friendlytalksapi.exceptions.WrongCredentialsException;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseObject;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
@@ -74,10 +75,19 @@ public class AuthenticationService {
 
 	public Mono<ResponseEntity<JwtAuthenticationResponse>> signIn(JwtAuthenticationRequest authenticationRequest) {
 		return this.userRepository.findByUsername(authenticationRequest.getUsername())
-						.map(user -> ResponseEntity.ok()
-										.contentType(MediaType.APPLICATION_JSON_UTF8)
-										.body(new JwtAuthenticationResponse(this.jwtTokenUtil.generateToken(user), user.getUsername()))
-						)
+						.flatMap(user -> {
+
+							if (this.checkPassword(authenticationRequest.getPassword(), user.getPassword())) {
+								return Mono.just(
+												ResponseEntity.ok()
+																.contentType(MediaType.APPLICATION_JSON_UTF8)
+																.body(new JwtAuthenticationResponse(this.jwtTokenUtil.generateToken(user), user.getUsername()))
+												);
+							} else {
+								// TODO: wrap this into ResponseEntity with proper HttpStatus and info
+								throw new WrongCredentialsException("Wrong Credentials!");
+							}
+						})
 						.defaultIfEmpty(ResponseEntity.notFound().build());
 	}
 
@@ -107,6 +117,12 @@ public class AuthenticationService {
 						});
 	}
 
+	/**
+	 *
+	 * @param inputPassword the password in the request
+	 * @param encryptedPassword the password in the database
+	 * @return true if passwords are matching
+	 */
 	private boolean checkPassword(String inputPassword, String encryptedPassword) {
 		return this.passwordEncryptor.matches(inputPassword, encryptedPassword);
 	}
