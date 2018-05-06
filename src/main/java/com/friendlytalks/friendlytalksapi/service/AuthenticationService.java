@@ -4,13 +4,14 @@ import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
 import com.friendlytalks.friendlytalksapi.exceptions.UserAlreadyExistsException;
 import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
 
-import com.friendlytalks.friendlytalksapi.model.HttpResponseObject;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
 import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationRequest;
 import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationResponse;
 import com.friendlytalks.friendlytalksapi.security.JwtTokenUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,7 +21,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
+
 @Service
+@Slf4j
 public class AuthenticationService {
 
 	private final BCryptPasswordEncoder passwordEncryptor;
@@ -38,16 +42,34 @@ public class AuthenticationService {
 		this.jwtTokenUtil = jwtTokenUtil;
 	}
 
-	public Mono<ResponseEntity<HttpResponseObject<?>>> signUp(User user) {
-		user.setPassword(passwordEncryptor.encode(user.getPassword()));
+	/**
+	 * Signing up a new user.
+	 *
+	 * @param newUser
+	 *            The user to create.
+	 *
+	 * @return HTTP 201, the header Location contains the URL of the created
+	 *         user.
+	 */
+	public Mono<ResponseEntity> signUp(User newUser) {
+		newUser.setPassword(passwordEncryptor.encode(newUser.getPassword()));
 
-		try {
-			return this.userRepository.insert(user).map(savedUser -> ResponseEntity.ok()
-							.contentType(MediaType.APPLICATION_JSON_UTF8)
-							.body(new HttpResponseObject<>(savedUser)));
-		} catch (RuntimeException e) {
-			throw new UserAlreadyExistsException(ErrorMessages.USER_ALREADY_EXISTS);
-		}
+		return Mono.justOrEmpty(newUser.getUsername())
+						.flatMap(username -> this.userRepository.findUserByUsername(username))
+						.defaultIfEmpty(new User())
+						.flatMap(user -> {
+							// TODO: refactor defaultEmpty() and flatMap() to a better solution
+							return (user.getUsername() != null) ? Mono.just(true) : Mono.just(false);
+						})
+						.flatMap(exists -> {
+							if (exists) {
+								// TODO: If this exception throws, ResponseStatus is 500, not 403 as should be
+								throw new UserAlreadyExistsException(HttpStatus.BAD_REQUEST, ErrorMessages.USER_ALREADY_EXISTS);
+							}
+
+							return this.userRepository.save(newUser).map(savedUser ->
+											ResponseEntity.created(URI.create(String.format("users/%s", savedUser.getId()))).build());
+						});
 	}
 
 	public Mono<ResponseEntity<JwtAuthenticationResponse>> signIn(JwtAuthenticationRequest authenticationRequest) {

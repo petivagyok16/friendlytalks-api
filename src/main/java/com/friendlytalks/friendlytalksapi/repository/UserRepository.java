@@ -9,5 +9,4 @@ public interface UserRepository extends ReactiveMongoRepository<User, String> {
 
 	Mono<UserDetails> findByUsername(String username);
 	Mono<User> findUserByUsername(String username);
-
 }

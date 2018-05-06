@@ -37,7 +37,7 @@ public class AuthenticationController {
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
 	@CrossOrigin("*")
-	public Mono<ResponseEntity<JwtAuthenticationResponse>> signing(@RequestBody JwtAuthenticationRequest authenticationRequest) throws AuthenticationException {
+	public Mono<ResponseEntity<JwtAuthenticationResponse>> signing(@RequestBody JwtAuthenticationRequest authenticationRequest) {
 		return this.authService.signIn(authenticationRequest);
 	}
 
@@ -45,7 +45,7 @@ public class AuthenticationController {
 					value = "/signup",
 					consumes = { APPLICATION_JSON_UTF8_VALUE }
 	)
-	public Mono<ResponseEntity<HttpResponseObject<?>>> signUp(@RequestBody @Valid User user) {
+	public Mono<ResponseEntity> signUp(@RequestBody @Valid User user) {
 		return this.authService.signUp(user);
 	}
 

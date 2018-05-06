@@ -6,10 +6,23 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * Exception to handle user already exists in the database.
  */
-@ResponseStatus(value = HttpStatus.CONFLICT)
+@ResponseStatus(value = HttpStatus.BAD_REQUEST)
 public class UserAlreadyExistsException extends RuntimeException {
 
-	public UserAlreadyExistsException(String message) {
-		super(message);
+	private final HttpStatus httpStatus;
+	private final String message;
+
+	public UserAlreadyExistsException(HttpStatus httpStatus, String message) {
+		this.httpStatus = httpStatus;
+		this.message = message;
+	}
+
+	public HttpStatus getHttpStatus() {
+		return httpStatus;
+	}
+
+	@Override
+	public String getMessage() {
+		return message;
 	}
 }
