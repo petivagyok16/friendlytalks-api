@@ -1,60 +1,110 @@
 package com.friendlytalks.friendlytalksapi.service;
 
 import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
+import com.friendlytalks.friendlytalksapi.exceptions.InvalidTokenException;
 import com.friendlytalks.friendlytalksapi.exceptions.UserAlreadyExistsException;
+
 import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
-import com.friendlytalks.friendlytalksapi.exceptions.WrongCredentialsException;
-import com.friendlytalks.friendlytalksapi.model.Credentials;
+import com.friendlytalks.friendlytalksapi.model.HttpResponseObject;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationRequest;
+import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationResponse;
+import com.friendlytalks.friendlytalksapi.security.JwtTokenUtil;
+import com.friendlytalks.friendlytalksapi.security.SecurityConstants;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
-import java.util.Optional;
+import java.net.URI;
 
-@Service("authService")
+@Service
+@Slf4j
 public class AuthenticationService {
 
-	private BCryptPasswordEncoder passwordEncryptor;
-	private UserRepository userRepository;
+	private final BCryptPasswordEncoder passwordEncryptor;
+	private final UserRepository userRepository;
+	private final JwtTokenUtil jwtTokenUtil;
 
-	public AuthenticationService(BCryptPasswordEncoder passwordEncryptor, UserRepository userRepository) {
+	@Autowired
+	public AuthenticationService(
+					BCryptPasswordEncoder passwordEncryptor,
+					UserRepository userRepository,
+					JwtTokenUtil jwtTokenUtil
+	) {
 		this.passwordEncryptor = passwordEncryptor;
 		this.userRepository = userRepository;
+		this.jwtTokenUtil = jwtTokenUtil;
 	}
 
-	public void signUp(User user) {
-		user.setPassword(passwordEncryptor.encode(user.getPassword()));
+	/**
+	 * Signing up a new user.
+	 *
+	 * @param newUser
+	 *            The user to create.
+	 *
+	 * @return HTTP 201, the header Location contains the URL of the created
+	 *         user.
+	 */
+	public Mono<ResponseEntity> signUp(User newUser) {
+		newUser.setPassword(passwordEncryptor.encode(newUser.getPassword()));
 
-		try {
-			this.userRepository.insert(user);
-		} catch (RuntimeException e) {
-			throw new UserAlreadyExistsException(ErrorMessages.USER_ALREADY_EXISTS);
-		}
+		return Mono.justOrEmpty(newUser.getUsername())
+						.flatMap(username -> this.userRepository.findUserByUsername(username))
+						.defaultIfEmpty(new User())
+						.flatMap(user -> {
+							// TODO: refactor defaultEmpty() and flatMap() to a better solution
+							return (user.getUsername() != null) ? Mono.just(true) : Mono.just(false);
+						})
+						.flatMap(exists -> {
+							if (exists) {
+								// TODO: If this exception throws, ResponseStatus is 500, not 403 as should be
+								throw new UserAlreadyExistsException(HttpStatus.BAD_REQUEST, ErrorMessages.USER_ALREADY_EXISTS);
+							}
+
+							return this.userRepository.save(newUser).map(savedUser ->
+											ResponseEntity.created(URI.create(String.format("users/%s", savedUser.getId()))).build());
+						});
 	}
 
-	public User signIn(Credentials credentials) {
-		Optional<User> user = this.userRepository.findByUsername(credentials.getUsername());
+	public Mono<ResponseEntity<JwtAuthenticationResponse>> signIn(JwtAuthenticationRequest authenticationRequest) {
+		return this.userRepository.findByUsername(authenticationRequest.getUsername())
+						.map(user -> ResponseEntity.ok()
+										.contentType(MediaType.APPLICATION_JSON_UTF8)
+										.body(new JwtAuthenticationResponse(this.jwtTokenUtil.generateToken(user), user.getUsername()))
+						)
+						.defaultIfEmpty(ResponseEntity.notFound().build());
+	}
 
-		if (user.isPresent() && this.checkPassword(credentials.getPassword(), user.get().getPassword())) {
-			return user.get();
+	public Mono<ResponseEntity<HttpResponseObject<User>>> getAuthenticatedUser(String bearerToken) {
+		String username = null;
+		String authToken;
+
+		if (bearerToken != null && bearerToken.startsWith(SecurityConstants.TOKEN_PREFIX + " ")) {
+			authToken = bearerToken.substring(7);
 		} else {
-			throw new WrongCredentialsException(ErrorMessages.WRONG_CREDENTIALS);
+			throw new InvalidTokenException("Invalid Token!");
 		}
-	}
 
-	public User getAuthenticatedUser() {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-		Optional<User> authenticatedUser = this.userRepository.findByUsername(auth.getName());
-
-		if (authenticatedUser.isPresent()) {
-			return authenticatedUser.get();
-		} else {
-			throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
+		if (jwtTokenUtil.validateToken(authToken)) {
+			username = jwtTokenUtil.getUsernameFromToken(authToken);
 		}
+
+		return this.userRepository.findUserByUsername(username)
+						.defaultIfEmpty(new User())
+						.flatMap(user -> {
+							// TODO: refactor defaultEmpty() and flatMap() to a better solution
+							if (user.getUsername() != null) {
+								return Mono.just(ResponseEntity.ok().body(new HttpResponseObject<>(user)));
+							} else {
+								throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
+							}
+						});
 	}
 
 	private boolean checkPassword(String inputPassword, String encryptedPassword) {
