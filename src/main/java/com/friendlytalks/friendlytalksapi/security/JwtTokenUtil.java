@@ -5,10 +5,9 @@ import io.jsonwebtoken.Clock;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.DefaultClock;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -17,6 +16,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Component
+@Slf4j
 public class JwtTokenUtil implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -124,7 +124,8 @@ public class JwtTokenUtil implements Serializable {
 	public Boolean validateToken(String token) {
 		final String username = getUsernameFromToken(token);
 		final Date created = getIssuedAtDateFromToken(token);
-		//final Date expiration = getExpirationDateFromToken(token);
+//		final Date expiration = getExpirationDateFromToken(token);
+
 		return (
 						username.equals(username)
 										&& !isTokenExpired(token)

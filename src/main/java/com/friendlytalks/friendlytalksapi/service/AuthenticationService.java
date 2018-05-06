@@ -1,22 +1,22 @@
 package com.friendlytalks.friendlytalksapi.service;
 
 import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
+import com.friendlytalks.friendlytalksapi.exceptions.InvalidTokenException;
 import com.friendlytalks.friendlytalksapi.exceptions.UserAlreadyExistsException;
-import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
 
+import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
+import com.friendlytalks.friendlytalksapi.model.HttpResponseObject;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
 import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationRequest;
 import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationResponse;
 import com.friendlytalks.friendlytalksapi.security.JwtTokenUtil;
+import com.friendlytalks.friendlytalksapi.security.SecurityConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -81,16 +81,30 @@ public class AuthenticationService {
 						.defaultIfEmpty(ResponseEntity.notFound().build());
 	}
 
-	public Mono<UserDetails> getAuthenticatedUser() {
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+	public Mono<ResponseEntity<HttpResponseObject<User>>> getAuthenticatedUser(String bearerToken) {
+		String username = null;
+		String authToken;
 
-		UserDetails authenticatedUser = this.userRepository.findByUsername(auth.getName()).block();
-
-		if (authenticatedUser != null) {
-			return Mono.just(authenticatedUser);
+		if (bearerToken != null && bearerToken.startsWith(SecurityConstants.TOKEN_PREFIX + " ")) {
+			authToken = bearerToken.substring(7);
 		} else {
-			throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
+			throw new InvalidTokenException("Invalid Token!");
 		}
+
+		if (jwtTokenUtil.validateToken(authToken)) {
+			username = jwtTokenUtil.getUsernameFromToken(authToken);
+		}
+
+		return this.userRepository.findUserByUsername(username)
+						.defaultIfEmpty(new User())
+						.flatMap(user -> {
+							// TODO: refactor defaultEmpty() and flatMap() to a better solution
+							if (user.getUsername() != null) {
+								return Mono.just(ResponseEntity.ok().body(new HttpResponseObject<>(user)));
+							} else {
+								throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
+							}
+						});
 	}
 
 	private boolean checkPassword(String inputPassword, String encryptedPassword) {

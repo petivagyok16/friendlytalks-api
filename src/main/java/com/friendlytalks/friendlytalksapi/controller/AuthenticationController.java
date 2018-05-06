@@ -8,11 +8,9 @@ import com.friendlytalks.friendlytalksapi.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import javax.naming.AuthenticationException;
 import javax.validation.Valid;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
@@ -53,8 +51,8 @@ public class AuthenticationController {
 					value = "/me",
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
-	public Mono<UserDetails> getAuthenticatedUser() {
-		return this.authService.getAuthenticatedUser();
+	public Mono<ResponseEntity<HttpResponseObject<User>>> getAuthenticatedUser(@RequestHeader(value = "Authorization") String bearerToken) {
+		return this.authService.getAuthenticatedUser(bearerToken);
 	}
 }
 
