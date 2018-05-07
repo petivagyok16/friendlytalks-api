@@ -9,6 +9,7 @@ import com.friendlytalks.friendlytalksapi.exceptions.WrongCredentialsException;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
+import com.friendlytalks.friendlytalksapi.security.CustomPasswordEncoder;
 import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationRequest;
 import com.friendlytalks.friendlytalksapi.security.JwtTokenUtil;
 import com.friendlytalks.friendlytalksapi.security.SecurityConstants;
@@ -17,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -27,13 +27,13 @@ import java.net.URI;
 @Slf4j
 public class AuthenticationService {
 
-	private final BCryptPasswordEncoder passwordEncryptor;
+	private final CustomPasswordEncoder passwordEncryptor;
 	private final UserRepository userRepository;
 	private final JwtTokenUtil jwtTokenUtil;
 
 	@Autowired
 	public AuthenticationService(
-					BCryptPasswordEncoder passwordEncryptor,
+					CustomPasswordEncoder passwordEncryptor,
 					UserRepository userRepository,
 					JwtTokenUtil jwtTokenUtil
 	) {
@@ -84,7 +84,7 @@ public class AuthenticationService {
 		return this.userRepository.findUserByUsername(authenticationRequest.getUsername())
 						.flatMap(user -> {
 
-							if (this.checkPassword(authenticationRequest.getPassword(), user.getPassword())) {
+							if (this.passwordEncryptor.matches(authenticationRequest.getPassword(), user.getPassword())) {
 								return Mono.just(
 												ResponseEntity.ok()
 																.contentType(MediaType.APPLICATION_JSON_UTF8)
@@ -130,16 +130,6 @@ public class AuthenticationService {
 								throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
 							}
 						});
-	}
-
-	/**
-	 *
-	 * @param inputPassword the password in the request
-	 * @param encryptedPassword the password in the database
-	 * @return true if passwords are matching
-	 */
-	private boolean checkPassword(String inputPassword, String encryptedPassword) {
-		return this.passwordEncryptor.matches(inputPassword, encryptedPassword);
 	}
 }
 

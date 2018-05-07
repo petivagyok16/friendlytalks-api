@@ -1,11 +1,13 @@
 package com.friendlytalks.friendlytalksapi.security;
 
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
-import java.util.Base64;
 
+@Component
 public class CustomPasswordEncoder implements PasswordEncoder {
 
 	@Override
@@ -20,7 +22,10 @@ public class CustomPasswordEncoder implements PasswordEncoder {
 
 	@Override
 	public boolean matches(CharSequence rawPassword, String encodedPassword) {
-		String decodedString  = new String(Base64.getDecoder().decode(rawPassword.toString()));
-		return BCrypt.checkpw(decodedString, encodedPassword);
+		return this.bCryptPasswordEncoder().matches(rawPassword, encodedPassword);
+	}
+
+	private BCryptPasswordEncoder bCryptPasswordEncoder() {
+		return new BCryptPasswordEncoder();
 	}
 }
