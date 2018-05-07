@@ -6,7 +6,7 @@ import com.friendlytalks.friendlytalksapi.exceptions.UserAlreadyExistsException;
 
 import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
 import com.friendlytalks.friendlytalksapi.exceptions.WrongCredentialsException;
-import com.friendlytalks.friendlytalksapi.model.HttpResponseObject;
+import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
 import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationRequest;
@@ -80,7 +80,7 @@ public class AuthenticationService {
 	 *
 	 * @return HTTP 200, with Jwt token and user information
 	 */
-	public Mono<ResponseEntity<HttpResponseObject<User>>> signIn(JwtAuthenticationRequest authenticationRequest) {
+	public Mono<ResponseEntity<HttpResponseWrapper<User>>> signIn(JwtAuthenticationRequest authenticationRequest) {
 		return this.userRepository.findUserByUsername(authenticationRequest.getUsername())
 						.flatMap(user -> {
 
@@ -88,7 +88,7 @@ public class AuthenticationService {
 								return Mono.just(
 												ResponseEntity.ok()
 																.contentType(MediaType.APPLICATION_JSON_UTF8)
-																.body(new HttpResponseObject<>(user, this.jwtTokenUtil.generateToken(user)))
+																.body(new HttpResponseWrapper<>(user, this.jwtTokenUtil.generateToken(user)))
 												);
 							} else {
 								// TODO: wrap this into ResponseEntity with proper HttpStatus and info
@@ -106,7 +106,7 @@ public class AuthenticationService {
 	 *
 	 * @return HTTP 200, with user information in payload
 	 */
-	public Mono<ResponseEntity<HttpResponseObject<User>>> getAuthenticatedUser(String bearerToken) {
+	public Mono<ResponseEntity<HttpResponseWrapper<User>>> getAuthenticatedUser(String bearerToken) {
 		String username = null;
 		String authToken;
 
@@ -125,7 +125,7 @@ public class AuthenticationService {
 						.flatMap(user -> {
 							// TODO: refactor defaultEmpty() and flatMap() to a better solution
 							if (user.getUsername() != null) {
-								return Mono.just(ResponseEntity.ok().body(new HttpResponseObject<>(user)));
+								return Mono.just(ResponseEntity.ok().body(new HttpResponseWrapper<>(user)));
 							} else {
 								throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
 							}

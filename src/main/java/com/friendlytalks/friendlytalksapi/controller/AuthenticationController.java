@@ -1,6 +1,6 @@
 package com.friendlytalks.friendlytalksapi.controller;
 
-import com.friendlytalks.friendlytalksapi.model.HttpResponseObject;
+import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationRequest;
 import com.friendlytalks.friendlytalksapi.service.AuthenticationService;
@@ -34,7 +34,7 @@ public class AuthenticationController {
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
 	@CrossOrigin("*")
-	public Mono<ResponseEntity<HttpResponseObject<User>>> signIn(@RequestBody JwtAuthenticationRequest authenticationRequest) {
+	public Mono<ResponseEntity<HttpResponseWrapper<User>>> signIn(@RequestBody JwtAuthenticationRequest authenticationRequest) {
 		return this.authService.signIn(authenticationRequest);
 	}
 
@@ -50,7 +50,7 @@ public class AuthenticationController {
 					value = "/me",
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
-	public Mono<ResponseEntity<HttpResponseObject<User>>> getAuthenticatedUser(@RequestHeader(value = "Authorization") String bearerToken) {
+	public Mono<ResponseEntity<HttpResponseWrapper<User>>> getAuthenticatedUser(@RequestHeader(value = "Authorization") String bearerToken) {
 		return this.authService.getAuthenticatedUser(bearerToken);
 	}
 }

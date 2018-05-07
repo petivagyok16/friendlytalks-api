@@ -6,7 +6,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class HttpResponseObject<T> implements Serializable {
+public class HttpResponseWrapper<T> implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private T payload;
@@ -14,11 +14,11 @@ public class HttpResponseObject<T> implements Serializable {
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	private String token;
 
-	public HttpResponseObject(T payload) {
+	public HttpResponseWrapper(T payload) {
 		this.payload = payload;
 	}
 
-	public HttpResponseObject(T payload, String token) {
+	public HttpResponseWrapper(T payload, String token) {
 		this.payload = payload;
 		this.token = token;
 	}
