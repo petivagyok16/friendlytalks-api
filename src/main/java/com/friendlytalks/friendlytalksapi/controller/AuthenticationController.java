@@ -3,12 +3,10 @@ package com.friendlytalks.friendlytalksapi.controller;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseObject;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationRequest;
-import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationResponse;
 import com.friendlytalks.friendlytalksapi.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
