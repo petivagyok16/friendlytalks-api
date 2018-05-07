@@ -1,18 +1,15 @@
 package com.friendlytalks.friendlytalksapi.security;
 
-import com.friendlytalks.friendlytalksapi.repository.UserRepository;
 import com.friendlytalks.friendlytalksapi.service.ReactiveUserDetailsServiceImpl;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
@@ -33,7 +30,6 @@ public class ReactiveWebSecurity {
 	@Autowired
 	public ReactiveWebSecurity(
 					ReactiveUserDetailsServiceImpl reactiveUserDetailsService,
-					UserRepository userRepository,
 					CustomAuthenticationConverter customAuthenticationConverter
 	) {
 		Assert.notNull(reactiveUserDetailsService, "userDetailsService cannot be null");
@@ -111,12 +107,6 @@ public class ReactiveWebSecurity {
 	@Bean
 	public WebSessionServerSecurityContextRepository securityContextRepository() {
 		return new WebSessionServerSecurityContextRepository();
-	}
-
-	@Bean
-	@Primary
-	public PasswordEncoder encoder() {
-		return new CustomPasswordEncoder();
 	}
 
 	@Bean
