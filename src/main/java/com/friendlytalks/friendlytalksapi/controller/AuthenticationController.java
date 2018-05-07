@@ -8,6 +8,7 @@ import com.friendlytalks.friendlytalksapi.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -35,7 +36,7 @@ public class AuthenticationController {
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
 	@CrossOrigin("*")
-	public Mono<ResponseEntity<JwtAuthenticationResponse>> signing(@RequestBody JwtAuthenticationRequest authenticationRequest) {
+	public Mono<ResponseEntity<HttpResponseObject<User>>> signIn(@RequestBody JwtAuthenticationRequest authenticationRequest) {
 		return this.authService.signIn(authenticationRequest);
 	}
 

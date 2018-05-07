@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -56,7 +57,7 @@ public class AuthenticationService {
 		newUser.setPassword(passwordEncryptor.encode(newUser.getPassword()));
 
 		return Mono.justOrEmpty(newUser.getUsername())
-						.flatMap(username -> this.userRepository.findUserByUsername(username))
+						.flatMap(this.userRepository::findUserByUsername)
 						.defaultIfEmpty(new User())
 						.flatMap(user -> {
 							// TODO: refactor defaultEmpty() and flatMap() to a better solution
@@ -64,7 +65,7 @@ public class AuthenticationService {
 						})
 						.flatMap(exists -> {
 							if (exists) {
-								// TODO: If this exception throws, ResponseStatus is 500, not 403 as should be
+								// TODO: If this exception throws, ResponseStatus is 500, not 403 as it should be
 								throw new UserAlreadyExistsException(HttpStatus.BAD_REQUEST, ErrorMessages.USER_ALREADY_EXISTS);
 							}
 
@@ -73,15 +74,23 @@ public class AuthenticationService {
 						});
 	}
 
-	public Mono<ResponseEntity<JwtAuthenticationResponse>> signIn(JwtAuthenticationRequest authenticationRequest) {
-		return this.userRepository.findByUsername(authenticationRequest.getUsername())
+	/**
+	 * Signing up a new user.
+	 *
+	 * @param authenticationRequest
+	 *            Credentials to create authentication
+	 *
+	 * @return HTTP 200, with Jwt token and user information
+	 */
+	public Mono<ResponseEntity<HttpResponseObject<User>>> signIn(JwtAuthenticationRequest authenticationRequest) {
+		return this.userRepository.findUserByUsername(authenticationRequest.getUsername())
 						.flatMap(user -> {
 
 							if (this.checkPassword(authenticationRequest.getPassword(), user.getPassword())) {
 								return Mono.just(
 												ResponseEntity.ok()
 																.contentType(MediaType.APPLICATION_JSON_UTF8)
-																.body(new JwtAuthenticationResponse(this.jwtTokenUtil.generateToken(user), user.getUsername()))
+																.body(new HttpResponseObject<>(user, this.jwtTokenUtil.generateToken(user)))
 												);
 							} else {
 								// TODO: wrap this into ResponseEntity with proper HttpStatus and info
@@ -91,6 +100,14 @@ public class AuthenticationService {
 						.defaultIfEmpty(ResponseEntity.notFound().build());
 	}
 
+	/**
+	 * Getting the authenticated user by looking at the Jwt token
+	 *
+	 * @param bearerToken
+	 *            Jwt token which contains some information about the user and can be used to find the user it belongs to.
+	 *
+	 * @return HTTP 200, with user information in payload
+	 */
 	public Mono<ResponseEntity<HttpResponseObject<User>>> getAuthenticatedUser(String bearerToken) {
 		String username = null;
 		String authToken;
