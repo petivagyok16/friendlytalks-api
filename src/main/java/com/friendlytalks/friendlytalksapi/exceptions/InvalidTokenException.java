@@ -1,11 +1,10 @@
 package com.friendlytalks.friendlytalksapi.exceptions;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.server.ResponseStatusException;
 
-@ResponseStatus(value = HttpStatus.FORBIDDEN)
-public class InvalidTokenException extends RuntimeException {
+public class InvalidTokenException extends ResponseStatusException {
 	public InvalidTokenException(String message) {
-		super(message);
+		super(HttpStatus.FORBIDDEN, message);
 	}
 }
