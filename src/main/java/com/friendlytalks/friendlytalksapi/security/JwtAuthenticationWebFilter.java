@@ -13,13 +13,13 @@ import reactor.core.publisher.Mono;
 public class JwtAuthenticationWebFilter extends AuthenticationWebFilter {
 
 	public JwtAuthenticationWebFilter(final CustomReactiveAuthenticationManager authenticationManager,
-																		final CustomAuthenticationConverter converter,
+																		final JwtAuthenticationConverter converter,
 																		final UnauthorizedAuthenticationEntryPoint entryPoint) {
 		super(authenticationManager);
 		setAuthenticationConverter(converter);
 		setAuthenticationFailureHandler(new ServerAuthenticationEntryPointFailureHandler(entryPoint));
 		setRequiresAuthenticationMatcher(new JWTHeadersExchangeMatcher());
-		setRequiresAuthenticationMatcher(new PathPatternParserServerWebExchangeMatcher("/api/**"));
+		setRequiresAuthenticationMatcher(new PathPatternParserServerWebExchangeMatcher(SecurityConstants.API_ROUTE));
 
 	}
 
