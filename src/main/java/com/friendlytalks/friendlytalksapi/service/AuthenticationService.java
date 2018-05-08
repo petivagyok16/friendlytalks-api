@@ -63,8 +63,7 @@ public class AuthenticationService {
 						})
 						.flatMap(exists -> {
 							if (exists) {
-								// TODO: If this exception throws, ResponseStatus is 500, not 403 as it should be
-								throw new UserAlreadyExistsException(HttpStatus.BAD_REQUEST, ErrorMessages.USER_ALREADY_EXISTS);
+								throw new UserAlreadyExistsException(ErrorMessages.USER_ALREADY_EXISTS);
 							}
 
 							return this.userRepository.save(newUser).map(savedUser ->
@@ -91,8 +90,7 @@ public class AuthenticationService {
 																.body(new HttpResponseWrapper<>(user, this.jwtTokenUtil.generateToken(user)))
 												);
 							} else {
-								// TODO: wrap this into ResponseEntity with proper HttpStatus and info
-								throw new WrongCredentialsException("Wrong Credentials!");
+								throw new WrongCredentialsException("Invalid Credentials");
 							}
 						})
 						.defaultIfEmpty(ResponseEntity.notFound().build());
@@ -107,18 +105,7 @@ public class AuthenticationService {
 	 * @return HTTP 200, with user information in payload
 	 */
 	public Mono<ResponseEntity<HttpResponseWrapper<User>>> getAuthenticatedUser(String bearerToken) {
-		String username = null;
-		String authToken;
-
-		if (bearerToken != null && bearerToken.startsWith(SecurityConstants.TOKEN_PREFIX + " ")) {
-			authToken = bearerToken.substring(7);
-		} else {
-			throw new InvalidTokenException("Invalid Token!");
-		}
-
-		if (jwtTokenUtil.validateToken(authToken)) {
-			username = jwtTokenUtil.getUsernameFromToken(authToken);
-		}
+		String username = this.validateToken(bearerToken);
 
 		return this.userRepository.findUserByUsername(username)
 						.defaultIfEmpty(new User())
@@ -130,6 +117,27 @@ public class AuthenticationService {
 								throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
 							}
 						});
+	}
+
+	/**
+	 *
+	 * @param bearerToken
+	 * @return username if the Token is valid
+	 */
+	private String validateToken(String bearerToken) {
+		String authToken;
+
+		if (bearerToken != null && bearerToken.startsWith(SecurityConstants.TOKEN_PREFIX + " ")) {
+			authToken = bearerToken.substring(7);
+		} else {
+			throw new InvalidTokenException(ErrorMessages.INVALID_TOKEN);
+		}
+
+		if (jwtTokenUtil.validateToken(authToken)) {
+			return jwtTokenUtil.getUsernameFromToken(authToken);
+		}
+
+		return null;
 	}
 }
 
