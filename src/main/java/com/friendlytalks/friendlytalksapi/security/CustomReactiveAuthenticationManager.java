@@ -2,21 +2,18 @@ package com.friendlytalks.friendlytalksapi.security;
 
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
 
+@Component
 public class CustomReactiveAuthenticationManager implements ReactiveAuthenticationManager {
-	private final ReactiveUserDetailsService userDetailsService;
 
 	private PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
 
-	public CustomReactiveAuthenticationManager(ReactiveUserDetailsService userDetailsService) {
-		Assert.notNull(userDetailsService, "userDetailsService cannot be null");
-		this.userDetailsService = userDetailsService;
-	}
+	public CustomReactiveAuthenticationManager() { }
 
 	@Override
 	public Mono<Authentication> authenticate(Authentication authentication) {
