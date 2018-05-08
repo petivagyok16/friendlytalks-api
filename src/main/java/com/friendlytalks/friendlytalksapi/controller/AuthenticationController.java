@@ -12,12 +12,6 @@ import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
-
-/**
- * Signin endpoint is not necessary here because JWTAuthenticationFilter handles the /api/v1/auth/signin endpoint.
- * Signin flow happens there
- */
 @RestController
 @RequestMapping("/auth")
 public class AuthenticationController {
@@ -31,6 +25,7 @@ public class AuthenticationController {
 
 	@PostMapping(
 					value = "/signin",
+					consumes = MediaType.APPLICATION_JSON_VALUE,
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
 	@CrossOrigin("*")
@@ -40,7 +35,7 @@ public class AuthenticationController {
 
 	@PostMapping(
 					value = "/signup",
-					consumes = { APPLICATION_JSON_UTF8_VALUE }
+					consumes =  MediaType.APPLICATION_JSON_VALUE
 	)
 	public Mono<ResponseEntity> signUp(@RequestBody @Valid User user) {
 		return this.authService.signUp(user);
