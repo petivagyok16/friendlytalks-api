@@ -1,5 +1,8 @@
 package com.friendlytalks.friendlytalksapi.security;
 
+import com.friendlytalks.friendlytalksapi.exceptions.InvalidTokenException;
+import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
+import com.friendlytalks.friendlytalksapi.exceptions.WrongCredentialsException;
 import com.friendlytalks.friendlytalksapi.service.ReactiveUserDetailsServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,14 +73,14 @@ public class CustomAuthenticationConverter implements Function<ServerWebExchange
 
 					return this.userDetailsService.findByUsername(username)
 									.publishOn(Schedulers.parallel())
-									.switchIfEmpty(Mono.error(new BadCredentialsException("Invalid Credentials")))
+									.switchIfEmpty(Mono.error(new WrongCredentialsException("Wrong Credentials!")))
 									.map(u -> new JwtAuthenticationToken(token, u.getUsername(), u.getAuthorities()));
 				}
 			}
 
 			return Mono.just(authentication);
 		} catch (Exception e) {
-			throw new BadCredentialsException("Invalid token...");
+			throw new InvalidTokenException("Invalid token...");
 		}
 	}
 }
