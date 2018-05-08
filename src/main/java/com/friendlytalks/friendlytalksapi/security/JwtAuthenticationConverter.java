@@ -1,7 +1,6 @@
 package com.friendlytalks.friendlytalksapi.security;
 
 import com.friendlytalks.friendlytalksapi.exceptions.InvalidTokenException;
-import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
 import com.friendlytalks.friendlytalksapi.exceptions.WrongCredentialsException;
 import com.friendlytalks.friendlytalksapi.service.ReactiveUserDetailsServiceImpl;
 import lombok.extern.slf4j.Slf4j;
