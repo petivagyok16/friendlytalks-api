@@ -7,6 +7,7 @@ import com.friendlytalks.friendlytalksapi.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -14,6 +15,7 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/auth")
+@Validated
 public class AuthenticationController {
 
 	private final AuthenticationService authService;
@@ -29,7 +31,7 @@ public class AuthenticationController {
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
 	@CrossOrigin("*")
-	public Mono<ResponseEntity<HttpResponseWrapper<User>>> signIn(@RequestBody JwtAuthenticationRequest authenticationRequest) {
+	public Mono<ResponseEntity<HttpResponseWrapper<User>>> signIn(@Valid @RequestBody JwtAuthenticationRequest authenticationRequest) {
 		return this.authService.signIn(authenticationRequest);
 	}
 
@@ -37,7 +39,7 @@ public class AuthenticationController {
 					value = "/signup",
 					consumes =  MediaType.APPLICATION_JSON_VALUE
 	)
-	public Mono<ResponseEntity> signUp(@RequestBody @Valid User user) {
+	public Mono<ResponseEntity> signUp(@Valid @RequestBody User user) {
 		return this.authService.signUp(user);
 	}
 
