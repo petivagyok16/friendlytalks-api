@@ -18,12 +18,12 @@ public class JwtAuthenticationWebFilter extends AuthenticationWebFilter {
 		super(authenticationManager);
 		setAuthenticationConverter(converter);
 		setAuthenticationFailureHandler(new ServerAuthenticationEntryPointFailureHandler(entryPoint));
-		setRequiresAuthenticationMatcher(new JWTHeadersExchangeMatcher());
+		setRequiresAuthenticationMatcher(new JwtHeadersExchangeMatcher());
 		setRequiresAuthenticationMatcher(new PathPatternParserServerWebExchangeMatcher(SecurityConstants.API_ROUTE));
 
 	}
 
-	private static class JWTHeadersExchangeMatcher implements ServerWebExchangeMatcher {
+	private static class JwtHeadersExchangeMatcher implements ServerWebExchangeMatcher {
 
 		@Override
 		public Mono<MatchResult> matches(final ServerWebExchange exchange) {
