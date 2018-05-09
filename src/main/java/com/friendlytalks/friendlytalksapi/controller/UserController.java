@@ -1,5 +1,6 @@
 package com.friendlytalks.friendlytalksapi.controller;
 
+import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ public class UserController {
 	}
 
 	@GetMapping
-	public Mono<ResponseEntity<List<User>>> getAllUser() {
+	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> getAllUser() {
 		return this.userService.getAllUser();
 	}
 }
