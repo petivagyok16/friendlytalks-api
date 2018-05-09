@@ -15,7 +15,6 @@ import com.friendlytalks.friendlytalksapi.security.JwtTokenUtil;
 import com.friendlytalks.friendlytalksapi.security.SecurityConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -122,6 +121,7 @@ public class AuthenticationService {
 	/**
 	 *
 	 * @param bearerToken
+	 * 				Jwt auth token with Bearer prefix
 	 * @return username if the Token is valid
 	 */
 	private String validateToken(String bearerToken) {
