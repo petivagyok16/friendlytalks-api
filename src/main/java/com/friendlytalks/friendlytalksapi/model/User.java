@@ -12,10 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Document(collection = "users")
 @Data
@@ -48,9 +45,17 @@ public class User implements UserDetails {
 	@NotBlank(message = "City cannot be empty!")
 	private String city;
 	private String pictureUrl;
-	private List<String> messages;
-	private Relations relations;
-	private Rating ratings;
+
+	@Builder.Default
+	private Set<String> messages = new HashSet<>();
+
+	@Builder.Default
+	private Relations relations = new Relations();
+
+	@Builder.Default
+	private Rating ratings = new Rating();
+
+	@Builder.Default
 	private List<String> roles = new ArrayList<>();
 	private boolean enabled;
 
@@ -63,7 +68,7 @@ public class User implements UserDetails {
 					@JsonProperty("lastName") String lastName,
 					@JsonProperty("city") String city,
 					@JsonProperty("pictureUrl") String pictureUrl,
-					@JsonProperty("messages") List<String> messages,
+					@JsonProperty("messages") Set<String> messages,
 					@JsonProperty("relations") Relations relations,
 					@JsonProperty("ratings") Rating ratings
 	) {
