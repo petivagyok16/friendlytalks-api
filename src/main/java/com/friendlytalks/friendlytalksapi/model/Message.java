@@ -3,11 +3,14 @@ package com.friendlytalks.friendlytalksapi.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.PastOrPresent;
 import java.util.Date;
 import java.util.List;
 
@@ -15,6 +18,7 @@ import java.util.List;
 @Data
 @Getter
 @Setter
+@NoArgsConstructor
 public class Message {
 
 	@Id
@@ -23,7 +27,7 @@ public class Message {
 	@NotBlank
 	private String content;
 
-	@NotBlank
+	@PastOrPresent
 	private Date created_at;
 
 	@NotBlank

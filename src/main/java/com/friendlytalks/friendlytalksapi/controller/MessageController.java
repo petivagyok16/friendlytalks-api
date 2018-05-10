@@ -1,11 +1,13 @@
 package com.friendlytalks.friendlytalksapi.controller;
 
+import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.Message;
 import com.friendlytalks.friendlytalksapi.model.MessageContent;
 import com.friendlytalks.friendlytalksapi.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -13,6 +15,7 @@ import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/message")
@@ -29,19 +32,17 @@ public class MessageController {
 	@GetMapping(
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
-	public Flux<Message> getAllMessage() {
+	public Mono<HttpResponseWrapper<List<Message>>> getAllMessage() {
 		return this.messageService.getAllMessage();
 	}
 
 	@PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-	@ResponseStatus(HttpStatus.CREATED)
-	public Mono<Void> addNew(@Valid @NotNull @RequestBody Message message) {
+	public Mono<ResponseEntity> addNew(@Valid @NotNull @RequestBody Message message) {
 		return this.messageService.addNew(message);
 	}
 
 	@DeleteMapping(value = "/{id}")
-	@ResponseStatus(HttpStatus.OK)
-	public Mono<Void> deleteMessage(@NotNull @PathVariable("id") String id) {
+	public Mono<ResponseEntity> deleteMessage(@NotNull @PathVariable("id") String id) {
 		return this.messageService.deleteMessage(id);
 	}
 
@@ -52,8 +53,7 @@ public class MessageController {
 	 * @param newMessageContent
 	 */
 	@PatchMapping(value = "/{id}")
-	@ResponseStatus(HttpStatus.OK)
-	public Mono<Void> editMessage(@NotNull @PathVariable("id") String id, @RequestBody MessageContent newMessageContent) {
+	public Mono<ResponseEntity> editMessage(@NotNull @PathVariable("id") String id, @RequestBody MessageContent newMessageContent) {
 		return this.messageService.editMessage(id, newMessageContent.getContent());
 	}
 }
