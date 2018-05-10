@@ -80,9 +80,24 @@ public class User implements UserDetails {
 		this.lastName= lastName;
 		this.city = city;
 		this.pictureUrl = pictureUrl;
-		this.messages = messages;
-		this.relations = relations;
-		this.ratings = ratings;
+
+		if (messages == null) {
+			this.messages = new HashSet<>();
+		} else {
+			this.messages = messages;
+		}
+
+		if (relations == null) {
+			this.relations = new Relations();
+		} else {
+			this.relations = relations;
+		}
+
+		if (ratings == null) {
+			this.ratings = new Rating();
+		} else {
+			this.ratings = ratings;
+		}
 
 		// TODO: authentication works currently with roles, so that all the users will get admin role, but we dont use roles in the client application
 		this.roles = Arrays.asList("ROLE_ADMIN");
