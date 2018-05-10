@@ -23,7 +23,17 @@ public class Relations {
 					@JsonProperty("followers") Set<String> followers,
 					@JsonProperty("following") Set<String> following
 	) {
-		this.followers = followers;
-		this.following = following;
+
+		if (followers == null) {
+			this.followers = new HashSet<>();
+		} else {
+			this.followers = followers;
+		}
+
+		if (following == null) {
+			this.following = new HashSet<>();
+		} else {
+			this.following = following;
+		}
 	}
 }
