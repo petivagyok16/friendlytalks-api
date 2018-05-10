@@ -39,8 +39,18 @@ public class Rating {
 						@JsonProperty("likes") Set<String> likes,
 						@JsonProperty("dislikes") Set<String> dislikes
 		) {
-			this.likes = likes;
-			this.dislikes = dislikes;
+
+			if (likes == null) {
+				this.likes = new HashSet<>();
+			} else {
+				this.likes = likes;
+			}
+
+			if (dislikes == null) {
+				this.dislikes = new HashSet<>();
+			} else {
+				this.dislikes = dislikes;
+			}
 		}
 	}
 }
