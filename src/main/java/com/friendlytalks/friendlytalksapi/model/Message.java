@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.validation.constraints.NotBlank;
 import java.util.Date;
 import java.util.List;
 
@@ -19,9 +20,15 @@ public class Message {
 	@Id
 	private String id;
 
+	@NotBlank
 	private String content;
+
+	@NotBlank
 	private Date created_at;
+
+	@NotBlank
 	private String user;
+
 	private Meta meta;
 
 	public Message(
