@@ -8,8 +8,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,14 +29,23 @@ public class User implements UserDetails {
 	@Id
 	private String id;
 
-	@NotEmpty
-	@NotNull
+	@NotBlank(message = "Username cannot be empty!")
 	private String username;
 
+	@NotBlank(message = "Email cannot be empty!")
+	@Email(message = "Email should be valid!")
 	private String email;
+
+	@Size(min = 4, message = "Password must be at least 4 characters long!")
 	private String password;
+
+	@NotBlank(message = "First name cannot be empty!")
 	private String firstName;
+
+	@NotBlank(message = "Last name cannot be empty!")
 	private String lastName;
+
+	@NotBlank(message = "City cannot be empty!")
 	private String city;
 	private String pictureUrl;
 	private List<String> messages;
