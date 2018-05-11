@@ -7,17 +7,12 @@ import com.friendlytalks.friendlytalksapi.model.Message;
 import com.friendlytalks.friendlytalksapi.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
-import java.util.Date;
 import java.util.List;
-
-import static org.springframework.http.ResponseEntity.noContent;
 
 @Service
 @Slf4j
