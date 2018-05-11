@@ -55,7 +55,6 @@ public class User implements UserDetails {
 	@Builder.Default
 	private Rating ratings = new Rating();
 
-	@Builder.Default
 	private List<String> roles = new ArrayList<>();
 	private boolean enabled;
 
