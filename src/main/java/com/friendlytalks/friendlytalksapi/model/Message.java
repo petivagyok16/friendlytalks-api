@@ -2,22 +2,19 @@ package com.friendlytalks.friendlytalksapi.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PastOrPresent;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Document(collection = "messages")
 @Data
-@Getter
-@Setter
 @NoArgsConstructor
 public class Message {
 
@@ -30,7 +27,7 @@ public class Message {
 	@PastOrPresent
 	private Date created_at;
 
-	@NotBlank
+	@NotNull
 	private String user;
 
 	private Meta meta;
@@ -44,37 +41,32 @@ public class Message {
 		this.id = id;
 		this.content = content;
 		this.created_at = created_at;
-		this.meta = meta;
 		this.user = user;
+
+		if (meta == null) {
+			this.meta = new Meta();
+		} else {
+			this.meta = meta;
+		}
 	}
 
 	// Dislikes and Likes stored as an inline Class inside Message
+	@Data
 	public static class Meta {
 
-		private List<String> dislikes;
-		private List<String> likes;
+		private Set<String> dislikes;
+		private Set<String> likes;
+
+		public Meta() {
+				this.likes = new HashSet<>();
+				this.dislikes = new HashSet<>();
+		}
 
 		public Meta(
-						@JsonProperty("dislikes") List<String> dislikes,
-						@JsonProperty("likes") List<String> likes) {
-			this.dislikes = dislikes;
-			this.likes = likes;
-		}
-
-		public List<String> getDislikes() {
-			return dislikes;
-		}
-
-		public void setDislikes(List<String> dislikes) {
-			this.dislikes = dislikes;
-		}
-
-		public List<String> getLikes() {
-			return likes;
-		}
-
-		public void setLikes(List<String> likes) {
-			this.likes = likes;
+						@JsonProperty("dislikes") Set<String> dislikes,
+						@JsonProperty("likes") Set<String> likes) {
+				this.likes = likes;
+				this.dislikes = dislikes;
 		}
 	}
 }

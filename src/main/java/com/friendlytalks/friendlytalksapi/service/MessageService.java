@@ -4,7 +4,9 @@ import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
 import com.friendlytalks.friendlytalksapi.exceptions.MessageNotFound;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.Message;
+import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.repository.MessageRepository;
+import com.friendlytalks.friendlytalksapi.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +21,12 @@ import java.util.List;
 public class MessageService {
 
 	private final MessageRepository messageRepository;
+	private final UserRepository userRepository;
 
 	@Autowired
-	public MessageService(MessageRepository messageRepository) {
+	public MessageService(MessageRepository messageRepository, UserRepository userRepository) {
 		this.messageRepository = messageRepository;
+		this.userRepository = userRepository;
 	}
 
 	public Mono<HttpResponseWrapper<List<Message>>> getAllMessage() {
@@ -35,16 +39,27 @@ public class MessageService {
 						.flatMap(message1 -> Mono.just(ResponseEntity.created(URI.create(String.format("messages/%s", message.getId()))).build()));
 	}
 
-	public Mono<ResponseEntity> deleteMessage(String id) {
+	public Mono<ResponseEntity> deleteMessage(String messageId) {
 
-		return this.messageRepository.findById(id)
+		return this.messageRepository.findById(messageId)
 						.defaultIfEmpty(new Message())
 						.flatMap(message -> {
 							if (message.getId() == null) {
 								throw new MessageNotFound(ErrorMessages.MESSAGE_NOT_FOUND);
 							}
 
-							return this.messageRepository.deleteById(id).then(Mono.just(ResponseEntity.ok().build()));
+							return this.messageRepository.deleteById(messageId)
+											.then(this.userRepository.findById(message.getUser()).flatMap(user -> {
+												if (user.getMessages().contains(messageId)) {
+													user.getMessages().remove(messageId);
+													return Mono.empty();
+												} else {
+													// error
+													// TODO: continue here...
+													return Mono.empty();
+												}
+											}))
+											.then(Mono.just(ResponseEntity.ok().build()));
 						});
 	}
 

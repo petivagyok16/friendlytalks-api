@@ -16,6 +16,7 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/auth")
 @Validated
+@CrossOrigin(origins = "*")
 public class AuthenticationController {
 
 	private final AuthenticationService authService;
@@ -30,7 +31,6 @@ public class AuthenticationController {
 					consumes = MediaType.APPLICATION_JSON_VALUE,
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
-	@CrossOrigin("*")
 	public Mono<ResponseEntity<HttpResponseWrapper<User>>> signIn(@Valid @RequestBody JwtAuthenticationRequest authenticationRequest) {
 		return this.authService.signIn(authenticationRequest);
 	}

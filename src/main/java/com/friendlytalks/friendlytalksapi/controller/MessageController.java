@@ -20,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/message")
 @Validated
+@CrossOrigin(origins = "*")
 public class MessageController {
 
 	private final MessageService messageService;
