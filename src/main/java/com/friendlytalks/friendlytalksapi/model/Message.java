@@ -21,14 +21,14 @@ public class Message {
 	@Id
 	private String id;
 
-	@NotBlank
+	@NotBlank(message = "Content cannot be empty!")
 	private String content;
 
 	@PastOrPresent
 	private Date created_at;
 
-	@NotNull
-	private String user;
+	@NotBlank(message = "No user was attached to the message!")
+	private String userId;
 
 	private Meta meta;
 
@@ -37,11 +37,11 @@ public class Message {
 					@JsonProperty("content") String content,
 					@JsonProperty("created_at") Date created_at,
 					@JsonProperty("meta") Meta meta,
-					@JsonProperty("user") String user) {
+					@JsonProperty("userId") String userId) {
 		this.id = id;
 		this.content = content;
 		this.created_at = created_at;
-		this.user = user;
+		this.userId = userId;
 
 		if (meta == null) {
 			this.meta = new Meta();

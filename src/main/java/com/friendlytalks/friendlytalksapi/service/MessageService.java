@@ -2,9 +2,9 @@ package com.friendlytalks.friendlytalksapi.service;
 
 import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
 import com.friendlytalks.friendlytalksapi.exceptions.MessageNotFound;
+import com.friendlytalks.friendlytalksapi.exceptions.MessageNotFoundAtUser;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.Message;
-import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.repository.MessageRepository;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -36,11 +36,15 @@ public class MessageService {
 	public Mono<ResponseEntity> addNew(Message message) {
 
 		return this.messageRepository.save(message)
-						.flatMap(message1 -> Mono.just(ResponseEntity.created(URI.create(String.format("messages/%s", message.getId()))).build()));
+						.flatMap(message1 -> this.userRepository.findById(message1.getUserId())
+										.flatMap(user -> {
+											user.getMessages().add(message1.getId());
+											return this.userRepository.save(user)
+															.then(Mono.just(ResponseEntity.created(URI.create(String.format("messages/%s", message.getId()))).build()));
+										}));
 	}
 
 	public Mono<ResponseEntity> deleteMessage(String messageId) {
-
 		return this.messageRepository.findById(messageId)
 						.defaultIfEmpty(new Message())
 						.flatMap(message -> {
@@ -49,17 +53,19 @@ public class MessageService {
 							}
 
 							return this.messageRepository.deleteById(messageId)
-											.then(this.userRepository.findById(message.getUser()).flatMap(user -> {
-												if (user.getMessages().contains(messageId)) {
-													user.getMessages().remove(messageId);
-													return Mono.empty();
-												} else {
-													// error
-													// TODO: continue here...
-													return Mono.empty();
-												}
-											}))
-											.then(Mono.just(ResponseEntity.ok().build()));
+											.then(this.userRepository.findById(message.getUserId())
+															.flatMap(user -> {
+																	if (user.getMessages().contains(messageId)) {
+																		user.getMessages().remove(messageId);
+																		return this.userRepository.save(user)
+																						.then(Mono.just(ResponseEntity.ok().build()));
+																	} else {
+																		// Error: message not found at the User
+																		throw new MessageNotFoundAtUser("Message was deleted but the User who owned the message did not had the message for some reason.");
+																	}
+															})
+											)
+											.defaultIfEmpty(ResponseEntity.notFound().build());
 						});
 	}
 
