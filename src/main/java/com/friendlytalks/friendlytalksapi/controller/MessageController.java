@@ -38,7 +38,7 @@ public class MessageController {
 	}
 
 	@PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<ResponseEntity> addNew(@Valid @NotNull @RequestBody Message message) {
+	public Mono<ResponseEntity> addNew(@Valid @RequestBody Message message) {
 		return this.messageService.addNew(message);
 	}
 
