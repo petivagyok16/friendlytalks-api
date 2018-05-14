@@ -60,12 +60,10 @@ public class MessageService {
 																		return this.userRepository.save(user)
 																						.then(Mono.just(ResponseEntity.ok().build()));
 																	} else {
-																		// Error: message not found at the User
-																		throw new MessageNotFoundAtUser("Message was deleted but the User who owned the message did not had the message for some reason.");
+																		throw new MessageNotFoundAtUser(ErrorMessages.MESSAGE_NOT_FOUND_AT_USER);
 																	}
 															})
-											)
-											.defaultIfEmpty(ResponseEntity.notFound().build());
+											);
 						});
 	}
 
