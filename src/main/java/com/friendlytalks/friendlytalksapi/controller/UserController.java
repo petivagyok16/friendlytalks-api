@@ -1,6 +1,7 @@
 package com.friendlytalks.friendlytalksapi.controller;
 
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
+import com.friendlytalks.friendlytalksapi.model.Message;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,5 +44,15 @@ public class UserController {
 	@GetMapping(path = "/followers/{userId}")
 	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> getUserFollowers(@NotNull @PathVariable("userId") String userId) {
 		return this.userService.getUserFollowers(userId);
+	}
+
+	@GetMapping(path = "/following/{userId}")
+	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> getUserFollowings(@NotNull @PathVariable("userId") String userId) {
+		return this.userService.getUserFollowings(userId);
+	}
+
+	@GetMapping(path = "/following-messages/{userId}")
+	public Mono<ResponseEntity<HttpResponseWrapper<List<Message>>>> getFollowingMessages(@NotNull @PathVariable("userId") String userId) {
+		return this.userService.getFollowingMessages(userId);
 	}
 }

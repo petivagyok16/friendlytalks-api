@@ -3,7 +3,9 @@ package com.friendlytalks.friendlytalksapi.service;
 import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
 import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
+import com.friendlytalks.friendlytalksapi.model.Message;
 import com.friendlytalks.friendlytalksapi.model.User;
+import com.friendlytalks.friendlytalksapi.repository.MessageRepository;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +18,12 @@ import java.util.List;
 public class UserService {
 
 	private final UserRepository userRepository;
+	private final MessageRepository messageRepository;
 
 	@Autowired
-	public UserService(UserRepository userRepository) {
+	public UserService(UserRepository userRepository, MessageRepository messageRepository) {
 		this.userRepository = userRepository;
+		this.messageRepository = messageRepository;
 	}
 
 	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> getAllUser() {
@@ -80,6 +84,28 @@ public class UserService {
 						})
 						.flatMap(user -> this.userRepository.findAllById(user.getRelations().getFollowers()).collectList()
 										.map(users -> ResponseEntity.ok().body(new HttpResponseWrapper<>(users))));
+
+	}
+
+	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> getUserFollowings(String userId) {
+		return this.userRepository.findById(userId)
+						.single()
+						.doOnError(error -> {
+							throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
+						})
+						.flatMap(user -> this.userRepository.findAllById(user.getRelations().getFollowing()).collectList()
+										.map(users -> ResponseEntity.ok().body(new HttpResponseWrapper<>(users))));
+
+	}
+
+	public Mono<ResponseEntity<HttpResponseWrapper<List<Message>>>> getFollowingMessages(String userId) {
+		return this.userRepository.findById(userId)
+						.single()
+						.doOnError(error -> {
+							throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
+						})
+						.flatMap(user -> this.messageRepository.findMessagesByUserId(user.getRelations().getFollowing()).collectList())
+						.map(messages -> ResponseEntity.ok().body(new HttpResponseWrapper<>(messages)));
 
 	}
 }
