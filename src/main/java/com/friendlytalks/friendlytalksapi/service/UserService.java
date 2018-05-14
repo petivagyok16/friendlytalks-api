@@ -10,11 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import javax.xml.ws.Response;
 import java.util.List;
-
-import static org.springframework.http.ResponseEntity.noContent;
-import static org.springframework.http.ResponseEntity.ok;
 
 @Service
 public class UserService {
@@ -49,15 +45,30 @@ public class UserService {
 							throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
 						})
 						.flatMap(user -> {
-							user.getRelations().getFollowing().add(toFollowId);
-							return this.userRepository.save(user)
-											.then(
-												this.userRepository.findById(toFollowId)
-													.flatMap(followerUser -> {
-														followerUser.getRelations().getFollowers().add(followerId);
-														return this.userRepository.save(followerUser).then(Mono.just(ResponseEntity.ok().build()));
-													})
-											);
+							if (user.getRelations().getFollowing().contains(toFollowId)) {
+								// Unfollow logic (user already followed the other user
+								user.getRelations().getFollowing().remove(toFollowId);
+								return this.userRepository.save(user)
+												.then(
+													this.userRepository.findById(toFollowId)
+														.flatMap(followerUser -> {
+															followerUser.getRelations().getFollowers().remove(followerId);
+															return this.userRepository.save(followerUser).then(Mono.just(ResponseEntity.ok().build()));
+														})
+												);
+							} else {
+								// Follow logic
+								user.getRelations().getFollowing().add(toFollowId);
+								return this.userRepository.save(user)
+												.then(
+													this.userRepository.findById(toFollowId)
+														.flatMap(followerUser -> {
+															followerUser.getRelations().getFollowers().add(followerId);
+															return this.userRepository.save(followerUser).then(Mono.just(ResponseEntity.ok().build()));
+														})
+												);
+							}
+
 						});
 	}
 }
