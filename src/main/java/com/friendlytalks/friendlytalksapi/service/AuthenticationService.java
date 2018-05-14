@@ -51,27 +51,23 @@ public class AuthenticationService {
 	 *         user.
 	 */
 	public Mono<ResponseEntity> signUp(User newUser) {
+
 		newUser.setPassword(passwordEncryptor.encode(newUser.getPassword()));
 
-		return Mono.justOrEmpty(newUser.getUsername())
-						.flatMap(this.userRepository::findUserByUsername)
-						.defaultIfEmpty(new User())
-						.flatMap(user -> {
-							// TODO: refactor defaultEmpty() and flatMap() to a better solution
-							return (user.getUsername() != null) ? Mono.just(true) : Mono.just(false);
-						})
-						.flatMap(exists -> {
-							if (exists) {
-								throw new UserAlreadyExistsException(ErrorMessages.USER_ALREADY_EXISTS);
-							}
-
-							return this.userRepository.save(newUser).map(savedUser ->
+		return this.userRepository.findUserByUsername(newUser.getUsername())
+			.hasElement()
+			.flatMap(exists -> {
+				if (exists) {
+					throw new UserAlreadyExistsException(ErrorMessages.USER_ALREADY_EXISTS);
+				} else {
+					return this.userRepository.save(newUser).map(savedUser ->
 											ResponseEntity.created(URI.create(String.format("users/%s", savedUser.getId()))).build());
-						});
+				}
+			});
 	}
 
 	/**
-	 * Signing up a new user.
+	 * Signing in user
 	 *
 	 * @param authenticationRequest
 	 *            Credentials to create authentication
@@ -80,6 +76,10 @@ public class AuthenticationService {
 	 */
 	public Mono<ResponseEntity<HttpResponseWrapper<User>>> signIn(JwtAuthenticationRequest authenticationRequest) {
 		return this.userRepository.findUserByUsername(authenticationRequest.getUsername())
+						.single()
+						.doOnError(error -> {
+							throw new WrongCredentialsException(ErrorMessages.WRONG_CREDENTIALS);
+						})
 						.flatMap(user -> {
 
 							if (this.passwordEncryptor.matches(authenticationRequest.getPassword(), user.getPassword())) {
@@ -89,10 +89,9 @@ public class AuthenticationService {
 																.body(new HttpResponseWrapper<>(user, this.jwtTokenUtil.generateToken(user)))
 												);
 							} else {
-								throw new WrongCredentialsException("Invalid Credentials");
+								throw new WrongCredentialsException(ErrorMessages.WRONG_CREDENTIALS);
 							}
-						})
-						.defaultIfEmpty(ResponseEntity.notFound().build());
+						});
 	}
 
 	/**
@@ -107,15 +106,11 @@ public class AuthenticationService {
 		String username = this.validateToken(bearerToken);
 
 		return this.userRepository.findUserByUsername(username)
-						.defaultIfEmpty(new User())
-						.flatMap(user -> {
-							// TODO: refactor defaultEmpty() and flatMap() to a better solution
-							if (user.getUsername() != null) {
-								return Mono.just(ResponseEntity.ok().body(new HttpResponseWrapper<>(user)));
-							} else {
-								throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
-							}
-						});
+						.single()
+						.doOnError(error -> {
+							throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
+						})
+						.flatMap(user -> Mono.just(ResponseEntity.ok().body(new HttpResponseWrapper<>(user))));
 	}
 
 	/**
