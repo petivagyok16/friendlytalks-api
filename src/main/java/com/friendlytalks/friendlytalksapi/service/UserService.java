@@ -46,7 +46,7 @@ public class UserService {
 						})
 						.flatMap(user -> {
 							if (user.getRelations().getFollowing().contains(toFollowId)) {
-								// Unfollow logic (user already followed the other user
+								// Un-follow logic (user already followed the other user)
 								user.getRelations().getFollowing().remove(toFollowId);
 								return this.userRepository.save(user)
 												.then(
@@ -70,5 +70,16 @@ public class UserService {
 							}
 
 						});
+	}
+
+	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> getUserFollowers(String userId) {
+		return this.userRepository.findById(userId)
+						.single()
+						.doOnError(error -> {
+							throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
+						})
+						.flatMap(user -> this.userRepository.findAllById(user.getRelations().getFollowers()).collectList()
+										.map(users -> ResponseEntity.ok().body(new HttpResponseWrapper<>(users))));
+
 	}
 }

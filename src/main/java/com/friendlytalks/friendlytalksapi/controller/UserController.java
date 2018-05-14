@@ -39,4 +39,9 @@ public class UserController {
 	public Mono<ResponseEntity> followUser(@NotNull @PathVariable("followerId") String followerId, @NotNull @PathVariable("toFollowId") String toFollowId) {
 		return this.userService.followUser(followerId, toFollowId);
 	}
+
+	@GetMapping(path = "/followers/{userId}")
+	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> getUserFollowers(@NotNull @PathVariable("userId") String userId) {
+		return this.userService.getUserFollowers(userId);
+	}
 }
