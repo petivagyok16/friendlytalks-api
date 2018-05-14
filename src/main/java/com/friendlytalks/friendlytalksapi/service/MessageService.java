@@ -46,37 +46,32 @@ public class MessageService {
 
 	public Mono<ResponseEntity> deleteMessage(String messageId) {
 		return this.messageRepository.findById(messageId)
-						.defaultIfEmpty(new Message())
-						.flatMap(message -> {
-							if (message.getId() == null) {
-								throw new MessageNotFound(ErrorMessages.MESSAGE_NOT_FOUND);
-							}
-
-							return this.messageRepository.deleteById(messageId)
-											.then(this.userRepository.findById(message.getUserId())
-															.flatMap(user -> {
-																	if (user.getMessages().contains(messageId)) {
-																		user.getMessages().remove(messageId);
-																		return this.userRepository.save(user)
-																						.then(Mono.just(ResponseEntity.ok().build()));
-																	} else {
-																		throw new MessageNotFoundAtUser(ErrorMessages.MESSAGE_NOT_FOUND_AT_USER);
-																	}
-															})
-											);
-						});
+						.single()
+						.doOnError(error -> {
+							throw new MessageNotFound(ErrorMessages.MESSAGE_NOT_FOUND);
+						})
+						.flatMap(message -> this.messageRepository.deleteById(messageId)
+										.then(this.userRepository.findById(message.getUserId())
+														.flatMap(user -> {
+																if (user.getMessages().contains(messageId)) {
+																	user.getMessages().remove(messageId);
+																	return this.userRepository.save(user)
+																					.then(Mono.just(ResponseEntity.ok().build()));
+																} else {
+																	throw new MessageNotFoundAtUser(ErrorMessages.MESSAGE_NOT_FOUND_AT_USER);
+																}
+														})
+										));
 	}
 
 	public Mono<ResponseEntity> editMessage(String id, String newContent) {
 
 		return this.messageRepository.findById(id)
-						.defaultIfEmpty(new Message())
+						.single()
+						.doOnError(error -> {
+							throw new MessageNotFound(ErrorMessages.MESSAGE_NOT_FOUND);
+						})
 						.flatMap(message -> {
-
-							if (message.getId() == null) {
-								throw new MessageNotFound(ErrorMessages.MESSAGE_NOT_FOUND);
-							}
-
 							message.setContent(newContent);
 
 							return this.messageRepository.save(message).then(Mono.just(ResponseEntity.ok().build()));
