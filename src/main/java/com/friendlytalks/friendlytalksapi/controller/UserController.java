@@ -8,12 +8,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
 @RestController
-@RequestMapping(path = "/api/v1/users", produces = { APPLICATION_JSON_UTF8_VALUE })
+@RequestMapping(path = "/api/v1/user", produces = { APPLICATION_JSON_UTF8_VALUE })
 @CrossOrigin(origins = "*")
 public class UserController {
 
@@ -27,5 +28,15 @@ public class UserController {
 	@GetMapping
 	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> getAllUser() {
 		return this.userService.getAllUser();
+	}
+
+	@GetMapping(value = "/{id}")
+	public Mono<ResponseEntity<HttpResponseWrapper<User>>> getUserProfile(@NotNull @PathVariable("id") String id) {
+		return this.userService.getUserProfile(id);
+	}
+
+	@PatchMapping(path = "/follower/{followerId}/toFollow/{toFollowId}")
+	public Mono<ResponseEntity> followUser(@NotNull @PathVariable("followerId") String followerId, @NotNull @PathVariable("toFollowId") String toFollowId) {
+		return this.userService.followUser(followerId, toFollowId);
 	}
 }
