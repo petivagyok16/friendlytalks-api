@@ -2,6 +2,7 @@ package com.friendlytalks.friendlytalksapi.service;
 
 import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
 import com.friendlytalks.friendlytalksapi.common.RatingEnum;
+import com.friendlytalks.friendlytalksapi.exceptions.InconsistentRatingException;
 import com.friendlytalks.friendlytalksapi.exceptions.MessageNotFound;
 import com.friendlytalks.friendlytalksapi.exceptions.MessageNotFoundAtUser;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
@@ -15,8 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -80,13 +83,14 @@ public class MessageService {
 	public Mono<ResponseEntity> rateMessage(String messageId, RateMessageRequestBody rateMessageRequestBody) {
 		int rating = rateMessageRequestBody.getRating();
 		String raterUserId = rateMessageRequestBody.getRaterUserId();
-		User raterUser = this.userRepository.findById(raterUserId).block();
+		User raterUser = this.userRepository.findById(raterUserId).then();
 		int prevRating = rateMessageRequestBody.getPrevRating();
 
 		return this.messageRepository.findById(messageId)
 						.single()
 						.doOnError(this::messageNotFound)
 						.flatMap(ratedMessage -> this.userRepository.findById(ratedMessage.getUserId())
+										// TODO: handle if user does not exist anymore
 										.flatMap(messageOwner -> {
 
 											switch (RatingEnum.values()[rating]) {
@@ -94,26 +98,78 @@ public class MessageService {
 
 													if (prevRating == RatingEnum.LIKE.getValue()) {
 														messageOwner.getRatings().getMy().getLikes().remove(raterUserId);
+														ratedMessage.getMeta().getLikes().remove(raterUserId);
+														raterUser.getRatings().getGiven().getLikes().remove(messageId);
 													}
 
+													if (prevRating == RatingEnum.DISLIKE.getValue()) {
+														messageOwner.getRatings().getMy().getDislikes().remove(raterUserId);
+														ratedMessage.getMeta().getDislikes().remove(raterUserId);
+														raterUser.getRatings().getGiven().getDislikes().remove(messageId);
+													}
 													break;
 												}
 
 												case LIKE: {
+
+													if (prevRating == RatingEnum.NO_RATING.getValue()) {
+														messageOwner.getRatings().getMy().getLikes().add(raterUserId);
+														ratedMessage.getMeta().getLikes().add(raterUserId);
+														raterUser.getRatings().getGiven().getLikes().add(messageId);
+													}
+
+													if (prevRating == RatingEnum.DISLIKE.getValue()) {
+														// Removing previous ratings
+														messageOwner.getRatings().getMy().getDislikes().remove(raterUserId);
+														ratedMessage.getMeta().getDislikes().remove(raterUserId);
+														raterUser.getRatings().getGiven().getDislikes().remove(messageId);
+
+														// Adding new ratings
+														messageOwner.getRatings().getMy().getLikes().add(raterUserId);
+														ratedMessage.getMeta().getLikes().add(raterUserId);
+														raterUser.getRatings().getGiven().getLikes().add(messageId);
+													}
 
 													break;
 												}
 
 												case DISLIKE: {
 
+													if (prevRating == RatingEnum.NO_RATING.getValue()) {
+														messageOwner.getRatings().getMy().getDislikes().add(raterUserId);
+														ratedMessage.getMeta().getDislikes().add(raterUserId);
+														raterUser.getRatings().getGiven().getDislikes().add(messageId);
+													}
+
+													if (prevRating == RatingEnum.LIKE.getValue()) {
+														// Removing previous ratings
+														messageOwner.getRatings().getMy().getLikes().add(raterUserId);
+														ratedMessage.getMeta().getLikes().remove(raterUserId);
+														raterUser.getRatings().getGiven().getLikes().remove(messageId);
+
+														// Adding new ratings
+														messageOwner.getRatings().getMy().getDislikes().add(raterUserId);
+														ratedMessage.getMeta().getDislikes().add(raterUserId);
+														raterUser.getRatings().getGiven().getDislikes().add(messageId);
+													}
+
 													break;
 												}
+
+												default: {
+													throw new InconsistentRatingException(ErrorMessages.INCONSISTENT_RATING);
+												}
 											}
+
+											List<User> usersToSave = new ArrayList<>();
+											usersToSave.add(raterUser);
+											usersToSave.add(messageOwner);
+
+											return this.userRepository.saveAll(usersToSave)
+															.then(this.messageRepository.save(ratedMessage));
 										})
 						)
-						.then(ResponseEntity.ok().build());
-
-		return null;
+						.then(Mono.just(ResponseEntity.ok().build()));
 	}
 
 	private void messageNotFound(Throwable error) {
