@@ -61,7 +61,7 @@ public class UserController {
 	}
 
 	@PatchMapping(path = "/edit/{userId}")
-	public Mono<ResponseEntity<HttpResponseWrapper<User>>> editUser(@NotNull @PathVariable("userId") String userId, @Valid @RequestBody EditedUser editedUser) {
-		return this.userService.editUser(userId, editedUser);
+	public Mono<ResponseEntity<HttpResponseWrapper<User>>> editUser(@NotNull @PathVariable("userId") String userId, @Valid @RequestBody EditedUser editedUser, @RequestHeader(value = "Authorization") String bearerToken) {
+		return this.userService.editUser(userId, editedUser, bearerToken);
 	}
 }

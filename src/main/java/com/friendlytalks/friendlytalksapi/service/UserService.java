@@ -1,6 +1,7 @@
 package com.friendlytalks.friendlytalksapi.service;
 
 import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
+import com.friendlytalks.friendlytalksapi.exceptions.EditUserNotAllowed;
 import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
 import com.friendlytalks.friendlytalksapi.model.EditedUser;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
@@ -8,6 +9,7 @@ import com.friendlytalks.friendlytalksapi.model.Message;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.repository.MessageRepository;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
+import com.friendlytalks.friendlytalksapi.security.JwtTokenUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,11 +24,17 @@ public class UserService {
 
 	private final UserRepository userRepository;
 	private final MessageRepository messageRepository;
+	private final JwtTokenUtil jwtTokenUtil;
 
 	@Autowired
-	public UserService(UserRepository userRepository, MessageRepository messageRepository) {
+	public UserService(
+					UserRepository userRepository,
+					MessageRepository messageRepository,
+					JwtTokenUtil jwtTokenUtil
+	) {
 		this.userRepository = userRepository;
 		this.messageRepository = messageRepository;
+		this.jwtTokenUtil = jwtTokenUtil;
 	}
 
 	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> getAllUser() {
@@ -75,11 +83,17 @@ public class UserService {
 						});
 	}
 
-	public Mono<ResponseEntity<HttpResponseWrapper<User>>> editUser(String userId, EditedUser editedUser) {
-		// TODO: Check auth token whether the usernames match
+	public Mono<ResponseEntity<HttpResponseWrapper<User>>> editUser(String userId, EditedUser editedUser, String bearerToken) {
 		return this.userRepository.findById(userId)
 						.single()
 						.doOnError(this::userNotFound)
+						.flatMap(user -> {
+							if (this.checkUsernames(bearerToken, user.getUsername())) {
+								return Mono.just(user);
+							} else {
+								throw new EditUserNotAllowed(ErrorMessages.EDIT_USER_NOT_ALLOWED);
+							}
+						})
 						.flatMap(user -> {
 							user.setCity(editedUser.getCity());
 							user.setEmail(editedUser.getEmail());
@@ -121,5 +135,9 @@ public class UserService {
 	private void userNotFound(Throwable error) {
 		log.error("User not found: " + error);
 		throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
+	}
+
+	private boolean checkUsernames(String bearerToken, String username) {
+		return this.jwtTokenUtil.getUsernameFromToken(this.jwtTokenUtil.formatToken(bearerToken)).equals(username);
 	}
 }
