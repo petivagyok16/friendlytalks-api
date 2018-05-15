@@ -51,7 +51,7 @@ public class User implements UserDetails {
 	private Relations relations = new Relations();
 
 	@Builder.Default
-	private Rating ratings = new Rating();
+	private Ratings ratings = new Ratings();
 
 	private List<String> roles = new ArrayList<>();
 	private boolean enabled;
@@ -67,7 +67,7 @@ public class User implements UserDetails {
 					@JsonProperty("pictureUrl") String pictureUrl,
 					@JsonProperty("messages") Set<String> messages,
 					@JsonProperty("relations") Relations relations,
-					@JsonProperty("ratings") Rating ratings
+					@JsonProperty("ratings") Ratings ratings
 	) {
 		this.id = id;
 		this.username = username;
@@ -91,7 +91,7 @@ public class User implements UserDetails {
 		}
 
 		if (ratings == null) {
-			this.ratings = new Rating();
+			this.ratings = new Ratings();
 		} else {
 			this.ratings = ratings;
 		}
