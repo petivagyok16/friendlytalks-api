@@ -1,7 +1,6 @@
 package com.friendlytalks.friendlytalksapi.service;
 
 import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
-import com.friendlytalks.friendlytalksapi.exceptions.InvalidTokenException;
 import com.friendlytalks.friendlytalksapi.exceptions.UserAlreadyExistsException;
 
 import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
@@ -12,7 +11,6 @@ import com.friendlytalks.friendlytalksapi.repository.UserRepository;
 import com.friendlytalks.friendlytalksapi.security.CustomPasswordEncoder;
 import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationRequest;
 import com.friendlytalks.friendlytalksapi.security.JwtTokenUtil;
-import com.friendlytalks.friendlytalksapi.security.SecurityConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -120,15 +118,9 @@ public class AuthenticationService {
 	 * @return username if the Token is valid
 	 */
 	private String validateToken(String bearerToken) {
-		String authToken;
+		String authToken = this.jwtTokenUtil.formatToken(bearerToken);
 
-		if (bearerToken != null && bearerToken.startsWith(SecurityConstants.TOKEN_PREFIX + " ")) {
-			authToken = bearerToken.substring(7);
-		} else {
-			throw new InvalidTokenException(ErrorMessages.INVALID_TOKEN);
-		}
-
-		if (jwtTokenUtil.validateToken(authToken)) {
+		if (this.jwtTokenUtil.validateToken(authToken)) {
 			return jwtTokenUtil.getUsernameFromToken(authToken);
 		}
 

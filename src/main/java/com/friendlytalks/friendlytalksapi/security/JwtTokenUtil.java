@@ -1,5 +1,7 @@
 package com.friendlytalks.friendlytalksapi.security;
 
+import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
+import com.friendlytalks.friendlytalksapi.exceptions.InvalidTokenException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Clock;
 import io.jsonwebtoken.Jwts;
@@ -130,6 +132,14 @@ public class JwtTokenUtil implements Serializable {
 						username.equals(username)
 										&& !isTokenExpired(token)
 		);
+	}
+
+	public String formatToken(String bearerToken) {
+		if (bearerToken != null && bearerToken.startsWith(SecurityConstants.TOKEN_PREFIX + " ")) {
+			return bearerToken.substring(7);
+		} else {
+			throw new InvalidTokenException(ErrorMessages.INVALID_TOKEN);
+		}
 	}
 
 	private Date calculateExpirationDate(Date createdDate) {
