@@ -60,24 +60,22 @@ public class UserService {
 								// Un-follow logic (user already followed the other user)
 								user.getRelations().getFollowing().remove(toFollowId);
 								return this.userRepository.save(user)
-												.then(
-													this.userRepository.findById(toFollowId)
-														.flatMap(followerUser -> {
-															followerUser.getRelations().getFollowers().remove(followerId);
-															return this.userRepository.save(followerUser).then(Mono.just(ResponseEntity.ok().build()));
-														})
-												);
+												.then(this.userRepository.findById(toFollowId))
+												.flatMap(followedUser -> {
+													followedUser.getRelations().getFollowers().remove(followerId);
+													return this.userRepository.save(followedUser);
+												})
+												.then(Mono.just(ResponseEntity.ok().build()));
 							} else {
 								// Follow logic
 								user.getRelations().getFollowing().add(toFollowId);
 								return this.userRepository.save(user)
-												.then(
-													this.userRepository.findById(toFollowId)
-														.flatMap(followerUser -> {
-															followerUser.getRelations().getFollowers().add(followerId);
-															return this.userRepository.save(followerUser).then(Mono.just(ResponseEntity.ok().build()));
-														})
-												);
+												.then(this.userRepository.findById(toFollowId))
+												.flatMap(followedUser -> {
+													followedUser.getRelations().getFollowers().add(followerId);
+													return this.userRepository.save(followedUser);
+												})
+												.then(Mono.just(ResponseEntity.ok().build()));
 							}
 
 						});
@@ -109,8 +107,8 @@ public class UserService {
 		return this.userRepository.findById(userId)
 						.single()
 						.doOnError(this::userNotFound)
-						.flatMap(user -> this.userRepository.findAllById(user.getRelations().getFollowers()).collectList()
-										.map(users -> ResponseEntity.ok().body(new HttpResponseWrapper<>(users))));
+						.flatMap(user -> this.userRepository.findAllById(user.getRelations().getFollowers()).collectList())
+						.map(users -> ResponseEntity.ok().body(new HttpResponseWrapper<>(users)));
 
 	}
 
@@ -118,8 +116,8 @@ public class UserService {
 		return this.userRepository.findById(userId)
 						.single()
 						.doOnError(this::userNotFound)
-						.flatMap(user -> this.userRepository.findAllById(user.getRelations().getFollowing()).collectList()
-										.map(users -> ResponseEntity.ok().body(new HttpResponseWrapper<>(users))));
+						.flatMap(user -> this.userRepository.findAllById(user.getRelations().getFollowing()).collectList())
+						.map(users -> ResponseEntity.ok().body(new HttpResponseWrapper<>(users)));
 
 	}
 
