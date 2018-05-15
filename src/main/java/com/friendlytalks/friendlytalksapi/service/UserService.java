@@ -2,6 +2,7 @@ package com.friendlytalks.friendlytalksapi.service;
 
 import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
 import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
+import com.friendlytalks.friendlytalksapi.model.EditedUser;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.Message;
 import com.friendlytalks.friendlytalksapi.model.User;
@@ -74,6 +75,24 @@ public class UserService {
 							}
 
 						});
+	}
+
+	public Mono<ResponseEntity<HttpResponseWrapper<User>>> editUser(String userId, EditedUser editedUser) {
+		// TODO: Check auth token whether the usernames match
+		return this.userRepository.findById(userId)
+						.single()
+						.doOnError(error -> {
+							throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
+						})
+						.flatMap(user -> {
+							user.setCity(editedUser.getCity());
+							user.setEmail(editedUser.getEmail());
+							user.setFirstName(editedUser.getFirstName());
+							user.setLastName(editedUser.getLastName());
+							user.setPictureUrl(editedUser.getPictureUrl());
+							return this.userRepository.save(user);
+						})
+						.map(user -> ResponseEntity.ok().body(new HttpResponseWrapper<>(user)));
 	}
 
 	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> getUserFollowers(String userId) {

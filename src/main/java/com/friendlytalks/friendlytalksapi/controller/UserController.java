@@ -1,14 +1,17 @@
 package com.friendlytalks.friendlytalksapi.controller;
 
+import com.friendlytalks.friendlytalksapi.model.EditedUser;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.Message;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -17,6 +20,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 @RestController
 @RequestMapping(path = "/api/v1/user", produces = { APPLICATION_JSON_UTF8_VALUE })
 @CrossOrigin(origins = "*")
+@Validated
 public class UserController {
 
 	private final UserService userService;
@@ -54,5 +58,10 @@ public class UserController {
 	@GetMapping(path = "/following-messages/{userId}")
 	public Mono<ResponseEntity<HttpResponseWrapper<List<Message>>>> getFollowingMessages(@NotNull @PathVariable("userId") String userId) {
 		return this.userService.getFollowingMessages(userId);
+	}
+
+	@PatchMapping(path = "/edit/{userId}")
+	public Mono<ResponseEntity<HttpResponseWrapper<User>>> editUser(@NotNull @PathVariable("userId") String userId, @Valid @RequestBody EditedUser editedUser) {
+		return this.userService.editUser(userId, editedUser);
 	}
 }
