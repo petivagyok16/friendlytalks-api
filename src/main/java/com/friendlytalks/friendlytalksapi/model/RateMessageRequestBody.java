@@ -4,19 +4,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.*;
 
 @Data
 @NoArgsConstructor
 public class RateMessageRequestBody {
 
-	@NotBlank(message = "Rating cannot be empty!")
+	@NotNull(message = "Rating cannot be empty!")
+	@Min(value = 0, message = "Rating must be between 0-2")
+	@Max(value = 2, message = "Rating must be between 0-2")
 	private int rating;
 
 	@NotBlank(message = "RaterUserId cannot be empty!")
 	private String raterUserId;
 
-	@NotBlank(message = "PrevRating cannot be empty!")
+	@NotNull(message = "Rating cannot be empty!")
+	@Min(value = 0, message = "Rating must be between 0-2")
+	@Max(value = 2, message = "Rating must be between 0-2")
 	private int prevRating;
 
 	public RateMessageRequestBody(@JsonProperty("rating") int rating,
