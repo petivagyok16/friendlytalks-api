@@ -104,7 +104,7 @@ public class UserService {
 						.doOnError(error -> {
 							throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
 						})
-						.flatMap(user -> this.messageRepository.findMessagesByUserId(user.getRelations().getFollowing()).collectList())
+						.flatMap(user -> this.messageRepository.findAllMessageByUserId(user.getRelations().getFollowing()).collectList())
 						.map(messages -> ResponseEntity.ok().body(new HttpResponseWrapper<>(messages)));
 
 	}
