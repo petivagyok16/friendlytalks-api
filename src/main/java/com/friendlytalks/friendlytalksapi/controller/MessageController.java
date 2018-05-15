@@ -3,6 +3,7 @@ package com.friendlytalks.friendlytalksapi.controller;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.Message;
 import com.friendlytalks.friendlytalksapi.model.MessageContent;
+import com.friendlytalks.friendlytalksapi.model.RateMessageRequestBody;
 import com.friendlytalks.friendlytalksapi.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,9 +31,7 @@ public class MessageController {
 		this.messageService = messageService;
 	}
 
-	@GetMapping(
-					produces = MediaType.APPLICATION_JSON_VALUE
-	)
+	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<HttpResponseWrapper<List<Message>>> getAllMessage() {
 		return this.messageService.getAllMessage();
 	}
@@ -56,5 +55,10 @@ public class MessageController {
 	@PatchMapping(value = "/{id}")
 	public Mono<ResponseEntity> editMessage(@NotNull @PathVariable("id") String id, @RequestBody MessageContent newMessageContent) {
 		return this.messageService.editMessage(id, newMessageContent.getContent());
+	}
+
+	@PatchMapping(value = "/rate/{messageId}")
+	public Mono<ResponseEntity> rateMessage(@NotNull @PathVariable("messageId") String messageId, @Valid @RequestBody RateMessageRequestBody rateMessageRequestBody) {
+		return this.messageService.rateMessage(messageId, rateMessageRequestBody);
 	}
 }

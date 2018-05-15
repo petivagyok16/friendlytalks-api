@@ -1,10 +1,13 @@
 package com.friendlytalks.friendlytalksapi.service;
 
 import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
+import com.friendlytalks.friendlytalksapi.common.RatingEnum;
 import com.friendlytalks.friendlytalksapi.exceptions.MessageNotFound;
 import com.friendlytalks.friendlytalksapi.exceptions.MessageNotFoundAtUser;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.Message;
+import com.friendlytalks.friendlytalksapi.model.RateMessageRequestBody;
+import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.repository.MessageRepository;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -36,9 +39,9 @@ public class MessageService {
 	public Mono<ResponseEntity> addNew(Message message) {
 
 		return this.messageRepository.save(message)
-						.flatMap(message1 -> this.userRepository.findById(message1.getUserId())
+						.flatMap(savedMessage -> this.userRepository.findById(savedMessage.getUserId())
 										.flatMap(user -> {
-											user.getMessages().add(message1.getId());
+											user.getMessages().add(savedMessage.getId());
 											return this.userRepository.save(user)
 															.then(Mono.just(ResponseEntity.created(URI.create(String.format("messages/%s", message.getId()))).build()));
 										}));
@@ -47,9 +50,7 @@ public class MessageService {
 	public Mono<ResponseEntity> deleteMessage(String messageId) {
 		return this.messageRepository.findById(messageId)
 						.single()
-						.doOnError(error -> {
-							throw new MessageNotFound(ErrorMessages.MESSAGE_NOT_FOUND);
-						})
+						.doOnError(this::messageNotFound)
 						.flatMap(message -> this.messageRepository.deleteById(messageId)
 										.then(this.userRepository.findById(message.getUserId())
 														.flatMap(user -> {
@@ -68,14 +69,55 @@ public class MessageService {
 
 		return this.messageRepository.findById(id)
 						.single()
-						.doOnError(error -> {
-							throw new MessageNotFound(ErrorMessages.MESSAGE_NOT_FOUND);
-						})
+						.doOnError(this::messageNotFound)
 						.flatMap(message -> {
 							message.setContent(newContent);
 
 							return this.messageRepository.save(message).then(Mono.just(ResponseEntity.ok().build()));
 						});
+	}
+
+	public Mono<ResponseEntity> rateMessage(String messageId, RateMessageRequestBody rateMessageRequestBody) {
+		int rating = rateMessageRequestBody.getRating();
+		String raterUserId = rateMessageRequestBody.getRaterUserId();
+		User raterUser = this.userRepository.findById(raterUserId).block();
+		int prevRating = rateMessageRequestBody.getPrevRating();
+
+		return this.messageRepository.findById(messageId)
+						.single()
+						.doOnError(this::messageNotFound)
+						.flatMap(ratedMessage -> this.userRepository.findById(ratedMessage.getUserId())
+										.flatMap(messageOwner -> {
+
+											switch (RatingEnum.values()[rating]) {
+												case NO_RATING: {
+
+													if (prevRating == RatingEnum.LIKE.getValue()) {
+														messageOwner.getRatings().getMy().getLikes().remove(raterUserId);
+													}
+
+													break;
+												}
+
+												case LIKE: {
+
+													break;
+												}
+
+												case DISLIKE: {
+
+													break;
+												}
+											}
+										})
+						)
+						.then(ResponseEntity.ok().build());
+
+		return null;
+	}
+
+	private void messageNotFound(Throwable error) {
+		throw new MessageNotFound(ErrorMessages.MESSAGE_NOT_FOUND);
 	}
 
 }
