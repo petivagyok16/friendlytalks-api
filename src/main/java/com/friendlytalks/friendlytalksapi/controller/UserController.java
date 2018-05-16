@@ -64,4 +64,9 @@ public class UserController {
 	public Mono<ResponseEntity<HttpResponseWrapper<User>>> editUser(@NotNull @PathVariable("userId") String userId, @Valid @RequestBody EditedUser editedUser, @RequestHeader(value = "Authorization") String bearerToken) {
 		return this.userService.editUser(userId, editedUser, bearerToken);
 	}
+
+	@GetMapping(path = "/find/{nameFragment}")
+	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> findUser(@NotNull @PathVariable("nameFragment") String nameFragment) {
+		return this.userService.findUser(nameFragment);
+	}
 }

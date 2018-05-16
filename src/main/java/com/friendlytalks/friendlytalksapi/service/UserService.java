@@ -130,6 +130,14 @@ public class UserService {
 
 	}
 
+	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> findUser(String nameFragment) {
+		String usernameRegex = ".*" + nameFragment + "*.";
+		return this.userRepository.findUsersByRegexpUsername(usernameRegex)
+						.collectList()
+						.flatMap(users -> Mono.just(ResponseEntity.ok().body(new HttpResponseWrapper<>(users))));
+
+	}
+
 	private void userNotFound(Throwable error) {
 		log.error("User not found: " + error);
 		throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
