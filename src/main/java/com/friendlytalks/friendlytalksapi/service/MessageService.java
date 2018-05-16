@@ -15,7 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import java.net.URI;
@@ -36,7 +38,9 @@ public class MessageService {
 	}
 
 	public Mono<HttpResponseWrapper<List<Message>>> getAllMessage() {
-		return messageRepository.findAll().collectList().flatMap(messages -> Mono.just(new HttpResponseWrapper<>(messages)));
+		return messageRepository.findAll()
+						.collectList()
+						.flatMap(messages -> Mono.just(new HttpResponseWrapper<>(messages)));
 	}
 
 	public Mono<ResponseEntity> addNew(Message message) {
@@ -84,15 +88,19 @@ public class MessageService {
 		int rating = rateMessageRequestBody.getRating();
 		String raterUserId = rateMessageRequestBody.getRaterUserId();
 		int prevRating = rateMessageRequestBody.getPrevRating();
+
 		// TODO: Refactor the reactive flow to more advanced/readable
 		// TODO: Refactor like,dislike Sets to ArrayList, they cannot be Sets
 		return this.userRepository.findById(raterUserId)
+						.publishOn(Schedulers.parallel())
 						.flatMap(raterUser -> Mono.just(raterUser)
 						.then(
 							this.messageRepository.findById(messageId)
+							.publishOn(Schedulers.parallel())
 							.single()
 							.doOnError(this::messageNotFound)
 							.flatMap(ratedMessage -> this.userRepository.findById(ratedMessage.getUserId())
+											.publishOn(Schedulers.parallel())
 											// TODO: handle if user does not exist anymore
 											.flatMap(messageOwner -> {
 
@@ -115,7 +123,7 @@ public class MessageService {
 
 													case LIKE: {
 
-														if (prevRating == RatingEnum.NO_RATING.getValue()) {
+														if (prevRating == RatingEnum.NO_RATING.getValue() && !raterUser.getRatings().getGiven().getLikes().contains(messageId)) {
 															messageOwner.getRatings().getMy().getLikes().add(raterUserId);
 															ratedMessage.getMeta().getLikes().add(raterUserId);
 															raterUser.getRatings().getGiven().getLikes().add(messageId);
