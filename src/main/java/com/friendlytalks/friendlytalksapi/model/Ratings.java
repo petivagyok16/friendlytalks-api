@@ -6,9 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -32,22 +31,22 @@ public class Ratings {
 	@NoArgsConstructor
 	public static class RatingContainer {
 
-		private Set<String> likes = new HashSet<>();
-		private Set<String> dislikes = new HashSet<>();
+		private List<String> likes = new ArrayList<>();
+		private List<String> dislikes = new ArrayList<>();
 
 		public RatingContainer(
-						@JsonProperty("likes") Set<String> likes,
-						@JsonProperty("dislikes") Set<String> dislikes
+						@JsonProperty("likes") List<String> likes,
+						@JsonProperty("dislikes") List<String> dislikes
 		) {
 
 			if (likes == null) {
-				this.likes = new HashSet<>();
+				this.likes = new ArrayList<>();
 			} else {
 				this.likes = likes;
 			}
 
 			if (dislikes == null) {
-				this.dislikes = new HashSet<>();
+				this.dislikes = new ArrayList<>();
 			} else {
 				this.dislikes = dislikes;
 			}
