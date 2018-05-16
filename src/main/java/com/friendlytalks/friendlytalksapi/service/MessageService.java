@@ -102,85 +102,86 @@ public class MessageService {
 							.flatMap(ratedMessage -> this.userRepository.findById(ratedMessage.getUserId())
 											.publishOn(Schedulers.parallel())
 											// TODO: handle if user does not exist anymore
-											.flatMap(messageOwner -> {
-
-												switch (RatingEnum.values()[rating]) {
-													case NO_RATING: {
-
-														if (prevRating == RatingEnum.LIKE.getValue()) {
-															messageOwner.getRatings().getMy().getLikes().remove(raterUserId);
-															ratedMessage.getMeta().getLikes().remove(raterUserId);
-															raterUser.getRatings().getGiven().getLikes().remove(messageId);
-														}
-
-														if (prevRating == RatingEnum.DISLIKE.getValue()) {
-															messageOwner.getRatings().getMy().getDislikes().remove(raterUserId);
-															ratedMessage.getMeta().getDislikes().remove(raterUserId);
-															raterUser.getRatings().getGiven().getDislikes().remove(messageId);
-														}
-														break;
-													}
-
-													case LIKE: {
-
-														if (prevRating == RatingEnum.NO_RATING.getValue() && !raterUser.getRatings().getGiven().getLikes().contains(messageId)) {
-															messageOwner.getRatings().getMy().getLikes().add(raterUserId);
-															ratedMessage.getMeta().getLikes().add(raterUserId);
-															raterUser.getRatings().getGiven().getLikes().add(messageId);
-														}
-
-														if (prevRating == RatingEnum.DISLIKE.getValue()) {
-															// Removing previous ratings
-															messageOwner.getRatings().getMy().getDislikes().remove(raterUserId);
-															ratedMessage.getMeta().getDislikes().remove(raterUserId);
-															raterUser.getRatings().getGiven().getDislikes().remove(messageId);
-
-															// Adding new ratings
-															messageOwner.getRatings().getMy().getLikes().add(raterUserId);
-															ratedMessage.getMeta().getLikes().add(raterUserId);
-															raterUser.getRatings().getGiven().getLikes().add(messageId);
-														}
-
-														break;
-													}
-
-													case DISLIKE: {
-
-														if (prevRating == RatingEnum.NO_RATING.getValue()) {
-															messageOwner.getRatings().getMy().getDislikes().add(raterUserId);
-															ratedMessage.getMeta().getDislikes().add(raterUserId);
-															raterUser.getRatings().getGiven().getDislikes().add(messageId);
-														}
-
-														if (prevRating == RatingEnum.LIKE.getValue()) {
-															// Removing previous ratings
-															messageOwner.getRatings().getMy().getLikes().add(raterUserId);
-															ratedMessage.getMeta().getLikes().remove(raterUserId);
-															raterUser.getRatings().getGiven().getLikes().remove(messageId);
-
-															// Adding new ratings
-															messageOwner.getRatings().getMy().getDislikes().add(raterUserId);
-															ratedMessage.getMeta().getDislikes().add(raterUserId);
-															raterUser.getRatings().getGiven().getDislikes().add(messageId);
-														}
-
-														break;
-													}
-
-													default: {
-														throw new InconsistentRatingException(ErrorMessages.INCONSISTENT_RATING);
-													}
-												}
-
-												List<User> usersToSave = new ArrayList<>();
-												usersToSave.add(raterUser);
-												usersToSave.add(messageOwner);
-
-												return this.userRepository.saveAll(usersToSave)
-																.then(this.messageRepository.save(ratedMessage));
-											})
+											.flatMap(messageOwner -> this.rateMessage(rating, prevRating, raterUserId, messageId, messageOwner, raterUser, ratedMessage))
 							)
 							.then(Mono.just(ResponseEntity.ok().build()))));
+	}
+
+	private Mono<?> rateMessage(int rating, int prevRating, String raterUserId, String messageId, User messageOwner, User raterUser, Message ratedMessage) {
+		switch (RatingEnum.values()[rating]) {
+			case NO_RATING: {
+
+				if (prevRating == RatingEnum.LIKE.getValue()) {
+					messageOwner.getRatings().getMy().getLikes().remove(raterUserId);
+					ratedMessage.getMeta().getLikes().remove(raterUserId);
+					raterUser.getRatings().getGiven().getLikes().remove(messageId);
+				}
+
+				if (prevRating == RatingEnum.DISLIKE.getValue()) {
+					messageOwner.getRatings().getMy().getDislikes().remove(raterUserId);
+					ratedMessage.getMeta().getDislikes().remove(raterUserId);
+					raterUser.getRatings().getGiven().getDislikes().remove(messageId);
+				}
+				break;
+			}
+
+			case LIKE: {
+
+				if (prevRating == RatingEnum.NO_RATING.getValue() && !raterUser.getRatings().getGiven().getLikes().contains(messageId)) {
+					messageOwner.getRatings().getMy().getLikes().add(raterUserId);
+					ratedMessage.getMeta().getLikes().add(raterUserId);
+					raterUser.getRatings().getGiven().getLikes().add(messageId);
+				}
+
+				if (prevRating == RatingEnum.DISLIKE.getValue()) {
+					// Removing previous ratings
+					messageOwner.getRatings().getMy().getDislikes().remove(raterUserId);
+					ratedMessage.getMeta().getDislikes().remove(raterUserId);
+					raterUser.getRatings().getGiven().getDislikes().remove(messageId);
+
+					// Adding new ratings
+					messageOwner.getRatings().getMy().getLikes().add(raterUserId);
+					ratedMessage.getMeta().getLikes().add(raterUserId);
+					raterUser.getRatings().getGiven().getLikes().add(messageId);
+				}
+
+				break;
+			}
+
+			case DISLIKE: {
+
+				if (prevRating == RatingEnum.NO_RATING.getValue()) {
+					messageOwner.getRatings().getMy().getDislikes().add(raterUserId);
+					ratedMessage.getMeta().getDislikes().add(raterUserId);
+					raterUser.getRatings().getGiven().getDislikes().add(messageId);
+				}
+
+				if (prevRating == RatingEnum.LIKE.getValue()) {
+					// Removing previous ratings
+					messageOwner.getRatings().getMy().getLikes().add(raterUserId);
+					ratedMessage.getMeta().getLikes().remove(raterUserId);
+					raterUser.getRatings().getGiven().getLikes().remove(messageId);
+
+					// Adding new ratings
+					messageOwner.getRatings().getMy().getDislikes().add(raterUserId);
+					ratedMessage.getMeta().getDislikes().add(raterUserId);
+					raterUser.getRatings().getGiven().getDislikes().add(messageId);
+				}
+
+				break;
+			}
+
+			default: {
+				throw new InconsistentRatingException(ErrorMessages.INCONSISTENT_RATING);
+			}
+		}
+
+		List<User> usersToSave = new ArrayList<>();
+		usersToSave.add(raterUser);
+		usersToSave.add(messageOwner);
+
+		return this.userRepository.saveAll(usersToSave)
+						.then(this.messageRepository.save(ratedMessage));
 	}
 
 	private void messageNotFound(Throwable error) {
