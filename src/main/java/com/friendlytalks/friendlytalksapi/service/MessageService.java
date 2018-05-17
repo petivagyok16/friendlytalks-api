@@ -13,8 +13,10 @@ import com.friendlytalks.friendlytalksapi.repository.MessageRepository;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -95,6 +97,8 @@ public class MessageService {
 								this.messageRepository.findById(messageId),
 								this.userRepository.findById(raterUserId),
 								this.userRepository.findUserByMessage(messageId))
+						.single()
+						.doOnError(this::handleDatabaseError)
 						.publishOn(Schedulers.parallel())
 						.flatMap(publisherList -> this.rateMessage(rating, prevRating, raterUserId, messageId, publisherList))
 						.then(Mono.just(ResponseEntity.ok().build()));
@@ -186,6 +190,11 @@ public class MessageService {
 
 	private void messageNotFound(Throwable error) {
 		throw new MessageNotFound(ErrorMessages.MESSAGE_NOT_FOUND);
+	}
+
+	private void handleDatabaseError(Throwable error) {
+		// TODO: make this more specified (if message/user not found show that error, if other db error throws show that)
+		throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ErrorMessages.DATABASE_ERROR);
 	}
 
 }
