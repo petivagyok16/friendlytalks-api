@@ -5,7 +5,7 @@ import com.friendlytalks.friendlytalksapi.model.User;
 import reactor.util.function.Tuple3;
 
 /**
- * RatingFactory handles all the Rating flow
+ * RatingFactory handles the Rating flow
  */
 public class RatingFactory {
 
