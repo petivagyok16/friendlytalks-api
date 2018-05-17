@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple3;
 
@@ -39,6 +38,7 @@ public class MessageService {
 	}
 
 	public Mono<HttpResponseWrapper<List<Message>>> getAllMessage() {
+
 		return messageRepository.findAll()
 						.collectList()
 						.flatMap(messages -> Mono.just(new HttpResponseWrapper<>(messages)));
@@ -56,6 +56,7 @@ public class MessageService {
 	}
 
 	public Mono<ResponseEntity> deleteMessage(String messageId) {
+
 		return this.messageRepository.findById(messageId)
 						.single()
 						.doOnError(this::messageNotFound)
