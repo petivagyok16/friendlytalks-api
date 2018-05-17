@@ -15,4 +15,7 @@ public interface UserRepository extends ReactiveMongoRepository<User, String> {
 
 	@Query("{'username' : { $regex: ?0 } }")
 	Flux<User> findUsersByRegexpUsername(String regex);
+
+	@Query("{'messages' : ?0}")
+	Mono<User> findUserByMessage(String messageId);
 }
