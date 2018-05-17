@@ -21,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import reactor.util.function.Tuple2;
 import reactor.util.function.Tuple3;
 
 import java.net.URI;
@@ -105,7 +106,7 @@ public class MessageService {
 
 	}
 
-	private Mono<Message> rateMessage(int rating, String raterUserId, String messageId, Tuple3<Message, User, User> publisherList) {
+	private Mono<List<Tuple2<User, Message>>> rateMessage(int rating, String raterUserId, String messageId, Tuple3<Message, User, User> publisherList) {
 
 		// Note that publisherList contains the publishers in the same order as we loaded into the Flux.zip() above.
 		Message ratedMessage = publisherList.getT1();
@@ -140,8 +141,11 @@ public class MessageService {
 		usersToSave.add(raterUser);
 		usersToSave.add(messageOwner);
 
-		return this.userRepository.saveAll(usersToSave)
-						.then(this.messageRepository.save(ratedMessage));
+		return Flux.zip(
+							this.userRepository.saveAll(usersToSave),
+							this.messageRepository.save(ratedMessage))
+						.publishOn(Schedulers.parallel())
+						.collectList();
 	}
 
 	private void messageNotFound(Throwable error) {
