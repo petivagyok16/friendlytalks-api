@@ -6,8 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
 
 @Getter
 @Setter
@@ -31,22 +30,22 @@ public class Ratings {
 	@NoArgsConstructor
 	public static class RatingContainer {
 
-		private List<String> likes = new ArrayList<>();
-		private List<String> dislikes = new ArrayList<>();
+		private LinkedList<String> likes = new LinkedList<>();
+		private LinkedList<String> dislikes = new LinkedList<>();
 
 		public RatingContainer(
-						@JsonProperty("likes") List<String> likes,
-						@JsonProperty("dislikes") List<String> dislikes
+						@JsonProperty("likes") LinkedList<String> likes,
+						@JsonProperty("dislikes") LinkedList<String> dislikes
 		) {
 
 			if (likes == null) {
-				this.likes = new ArrayList<>();
+				this.likes = new LinkedList<>();
 			} else {
 				this.likes = likes;
 			}
 
 			if (dislikes == null) {
-				this.dislikes = new ArrayList<>();
+				this.dislikes = new LinkedList<>();
 			} else {
 				this.dislikes = dislikes;
 			}
