@@ -19,6 +19,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
+import reactor.util.function.Tuple3;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -86,28 +87,26 @@ public class MessageService {
 
 	public Mono<ResponseEntity> rateMessage(String messageId, RateMessageRequestBody rateMessageRequestBody) {
 		int rating = rateMessageRequestBody.getRating();
-		String raterUserId = rateMessageRequestBody.getRaterUserId();
 		int prevRating = rateMessageRequestBody.getPrevRating();
+		String raterUserId = rateMessageRequestBody.getRaterUserId();
 
-		// TODO: Refactor the reactive flow to more advanced/readable
-		// TODO: Refactor like,dislike Sets to ArrayList, they cannot be Sets
-		return this.userRepository.findById(raterUserId)
+		return Flux.zip(
+								this.messageRepository.findById(messageId),
+								this.userRepository.findById(raterUserId),
+								this.userRepository.findUserByMessage(messageId))
 						.publishOn(Schedulers.parallel())
-						.flatMap(raterUser -> Mono.just(raterUser)
-						.then(
-							this.messageRepository.findById(messageId)
-							.publishOn(Schedulers.parallel())
-							.single()
-							.doOnError(this::messageNotFound)
-							.flatMap(ratedMessage -> this.userRepository.findById(ratedMessage.getUserId())
-											.publishOn(Schedulers.parallel())
-											// TODO: handle if user does not exist anymore
-											.flatMap(messageOwner -> this.rateMessage(rating, prevRating, raterUserId, messageId, messageOwner, raterUser, ratedMessage))
-							)
-							.then(Mono.just(ResponseEntity.ok().build()))));
+						.flatMap(publisherList -> this.rateMessage(rating, prevRating, raterUserId, messageId, publisherList))
+						.then(Mono.just(ResponseEntity.ok().build()));
+
 	}
 
-	private Mono<?> rateMessage(int rating, int prevRating, String raterUserId, String messageId, User messageOwner, User raterUser, Message ratedMessage) {
+	private Mono<Message> rateMessage(int rating, int prevRating, String raterUserId, String messageId, Tuple3<Message, User, User> publisherList) {
+
+		// Note: publisherList contains the publishers in the same order as we loaded into the Flux.zip() above.
+		Message ratedMessage = publisherList.getT1();
+		User raterUser = publisherList.getT2();
+		User messageOwner = publisherList.getT3();
+
 		switch (RatingEnum.values()[rating]) {
 			case NO_RATING: {
 
@@ -158,7 +157,7 @@ public class MessageService {
 
 				if (prevRating == RatingEnum.LIKE.getValue()) {
 					// Removing previous ratings
-					messageOwner.getRatings().getMy().getLikes().add(raterUserId);
+					messageOwner.getRatings().getMy().getLikes().remove(raterUserId);
 					ratedMessage.getMeta().getLikes().remove(raterUserId);
 					raterUser.getRatings().getGiven().getLikes().remove(messageId);
 
