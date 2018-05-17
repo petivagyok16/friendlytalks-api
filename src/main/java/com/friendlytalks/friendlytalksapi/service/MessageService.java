@@ -2,6 +2,7 @@ package com.friendlytalks.friendlytalksapi.service;
 
 import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
 import com.friendlytalks.friendlytalksapi.common.RatingEnum;
+import com.friendlytalks.friendlytalksapi.common.RatingFactory;
 import com.friendlytalks.friendlytalksapi.exceptions.InconsistentRatingException;
 import com.friendlytalks.friendlytalksapi.exceptions.MessageNotFound;
 import com.friendlytalks.friendlytalksapi.exceptions.MessageNotFoundAtUser;
@@ -90,7 +91,6 @@ public class MessageService {
 
 	public Mono<ResponseEntity> rateMessage(String messageId, RateMessageRequestBody rateMessageRequestBody) {
 		int rating = rateMessageRequestBody.getRating();
-		int prevRating = rateMessageRequestBody.getPrevRating();
 		String raterUserId = rateMessageRequestBody.getRaterUserId();
 
 		return Flux.zip(
@@ -100,77 +100,33 @@ public class MessageService {
 						.single()
 						.doOnError(this::handleDatabaseError)
 						.publishOn(Schedulers.parallel())
-						.flatMap(publisherList -> this.rateMessage(rating, prevRating, raterUserId, messageId, publisherList))
+						.flatMap(publisherList -> this.rateMessage(rating, raterUserId, messageId, publisherList))
 						.then(Mono.just(ResponseEntity.ok().build()));
 
 	}
 
-	private Mono<Message> rateMessage(int rating, int prevRating, String raterUserId, String messageId, Tuple3<Message, User, User> publisherList) {
+	private Mono<Message> rateMessage(int rating, String raterUserId, String messageId, Tuple3<Message, User, User> publisherList) {
 
-		// Note: publisherList contains the publishers in the same order as we loaded into the Flux.zip() above.
+		// Note that publisherList contains the publishers in the same order as we loaded into the Flux.zip() above.
 		Message ratedMessage = publisherList.getT1();
 		User raterUser = publisherList.getT2();
 		User messageOwner = publisherList.getT3();
 
 		switch (RatingEnum.values()[rating]) {
 			case NO_RATING: {
+				RatingFactory.addNoRating(raterUserId, messageId, publisherList);
 
-				if (prevRating == RatingEnum.LIKE.getValue()) {
-					messageOwner.getRatings().getMy().getLikes().remove(raterUserId);
-					ratedMessage.getMeta().getLikes().remove(raterUserId);
-					raterUser.getRatings().getGiven().getLikes().remove(messageId);
-				}
-
-				if (prevRating == RatingEnum.DISLIKE.getValue()) {
-					messageOwner.getRatings().getMy().getDislikes().remove(raterUserId);
-					ratedMessage.getMeta().getDislikes().remove(raterUserId);
-					raterUser.getRatings().getGiven().getDislikes().remove(messageId);
-				}
 				break;
 			}
 
 			case LIKE: {
-
-				if (prevRating == RatingEnum.NO_RATING.getValue() && !raterUser.getRatings().getGiven().getLikes().contains(messageId)) {
-					messageOwner.getRatings().getMy().getLikes().add(raterUserId);
-					ratedMessage.getMeta().getLikes().add(raterUserId);
-					raterUser.getRatings().getGiven().getLikes().add(messageId);
-				}
-
-				if (prevRating == RatingEnum.DISLIKE.getValue()) {
-					// Removing previous ratings
-					messageOwner.getRatings().getMy().getDislikes().remove(raterUserId);
-					ratedMessage.getMeta().getDislikes().remove(raterUserId);
-					raterUser.getRatings().getGiven().getDislikes().remove(messageId);
-
-					// Adding new ratings
-					messageOwner.getRatings().getMy().getLikes().add(raterUserId);
-					ratedMessage.getMeta().getLikes().add(raterUserId);
-					raterUser.getRatings().getGiven().getLikes().add(messageId);
-				}
+				RatingFactory.addLike(raterUserId, messageId, publisherList);
 
 				break;
 			}
 
 			case DISLIKE: {
-
-				if (prevRating == RatingEnum.NO_RATING.getValue()) {
-					messageOwner.getRatings().getMy().getDislikes().add(raterUserId);
-					ratedMessage.getMeta().getDislikes().add(raterUserId);
-					raterUser.getRatings().getGiven().getDislikes().add(messageId);
-				}
-
-				if (prevRating == RatingEnum.LIKE.getValue()) {
-					// Removing previous ratings
-					messageOwner.getRatings().getMy().getLikes().remove(raterUserId);
-					ratedMessage.getMeta().getLikes().remove(raterUserId);
-					raterUser.getRatings().getGiven().getLikes().remove(messageId);
-
-					// Adding new ratings
-					messageOwner.getRatings().getMy().getDislikes().add(raterUserId);
-					ratedMessage.getMeta().getDislikes().add(raterUserId);
-					raterUser.getRatings().getGiven().getDislikes().add(messageId);
-				}
+				RatingFactory.addDislike(raterUserId, messageId, publisherList);
 
 				break;
 			}
