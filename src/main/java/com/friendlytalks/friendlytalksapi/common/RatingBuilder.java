@@ -5,9 +5,9 @@ import com.friendlytalks.friendlytalksapi.model.User;
 import reactor.util.function.Tuple3;
 
 /**
- * RatingFactory handles the Rating flow
+ * RatingBuilder handles the Rating flow
  */
-public class RatingFactory {
+public class RatingBuilder {
 
 	private static Message ratedMessage;
 	private static User raterUser;
@@ -20,13 +20,13 @@ public class RatingFactory {
 	 * @param publisherList A Tuple which contains all the exact database documents
 	 */
 	public static void addNoRating(String raterUserId, String messageId, Tuple3<Message, User, User> publisherList) {
-		RatingFactory.setPublishers(publisherList);
-		RatingFactory.removeRatings(raterUserId, messageId);
+		RatingBuilder.setPublishers(publisherList);
+		RatingBuilder.removeRatings(raterUserId, messageId);
 	}
 
 	public static void addLike(String raterUserId, String messageId, Tuple3<Message, User, User> publisherList) {
-		RatingFactory.setPublishers(publisherList);
-		RatingFactory.removeRatings(raterUserId, messageId);
+		RatingBuilder.setPublishers(publisherList);
+		RatingBuilder.removeRatings(raterUserId, messageId);
 
 		messageOwner.getRatings().getMy().getLikes().add(raterUserId);
 		ratedMessage.getMeta().getLikes().add(raterUserId);
@@ -34,8 +34,8 @@ public class RatingFactory {
 	}
 
 	public static void addDislike(String raterUserId, String messageId, Tuple3<Message, User, User> publisherList) {
-		RatingFactory.setPublishers(publisherList);
-		RatingFactory.removeRatings(raterUserId, messageId);
+		RatingBuilder.setPublishers(publisherList);
+		RatingBuilder.removeRatings(raterUserId, messageId);
 
 		messageOwner.getRatings().getMy().getDislikes().add(raterUserId);
 		ratedMessage.getMeta().getDislikes().add(raterUserId);
@@ -66,8 +66,8 @@ public class RatingFactory {
 	 * We set fresh publishers each time we perform a new Rating operation
 	 */
 	private static void setPublishers(Tuple3<Message, User, User> publisherList) {
-		RatingFactory.ratedMessage = publisherList.getT1();
-		RatingFactory.raterUser = publisherList.getT2();
-		RatingFactory.messageOwner = publisherList.getT3();
+		RatingBuilder.ratedMessage = publisherList.getT1();
+		RatingBuilder.raterUser = publisherList.getT2();
+		RatingBuilder.messageOwner = publisherList.getT3();
 	}
 }

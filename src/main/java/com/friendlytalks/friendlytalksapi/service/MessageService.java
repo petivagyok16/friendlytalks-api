@@ -1,8 +1,8 @@
 package com.friendlytalks.friendlytalksapi.service;
 
 import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
+import com.friendlytalks.friendlytalksapi.common.RatingBuilder;
 import com.friendlytalks.friendlytalksapi.common.RatingEnum;
-import com.friendlytalks.friendlytalksapi.common.RatingFactory;
 import com.friendlytalks.friendlytalksapi.exceptions.InconsistentRatingException;
 import com.friendlytalks.friendlytalksapi.exceptions.MessageNotFound;
 import com.friendlytalks.friendlytalksapi.exceptions.MessageNotFoundAtUser;
@@ -115,19 +115,19 @@ public class MessageService {
 
 		switch (RatingEnum.values()[rating]) {
 			case NO_RATING: {
-				RatingFactory.addNoRating(raterUserId, messageId, publisherList);
+				RatingBuilder.addNoRating(raterUserId, messageId, publisherList);
 
 				break;
 			}
 
 			case LIKE: {
-				RatingFactory.addLike(raterUserId, messageId, publisherList);
+				RatingBuilder.addLike(raterUserId, messageId, publisherList);
 
 				break;
 			}
 
 			case DISLIKE: {
-				RatingFactory.addDislike(raterUserId, messageId, publisherList);
+				RatingBuilder.addDislike(raterUserId, messageId, publisherList);
 
 				break;
 			}
