@@ -100,7 +100,7 @@ public class MessageService {
 								this.userRepository.findById(raterUserId),
 								this.userRepository.findUserByMessage(messageId))
 						.single()
-						.doOnError(ExceptionThrower::handleDatabaseError)
+						.doOnError(ExceptionThrower::emptySourceError)
 						.publishOn(Schedulers.parallel())
 						.flatMap(publisherList -> this.rateMessage(rating, raterUserId, messageId, publisherList))
 						.then(Mono.just(ResponseEntity.ok().build()));
@@ -108,11 +108,6 @@ public class MessageService {
 	}
 
 	private Mono<List<Tuple2<User, Message>>> rateMessage(int rating, String raterUserId, String messageId, Tuple3<Message, User, User> publisherList) {
-
-		// Note that publisherList contains the publishers in the same order as we loaded into the Flux.zip() above.
-		Message ratedMessage = publisherList.getT1();
-		User raterUser = publisherList.getT2();
-		User messageOwner = publisherList.getT3();
 
 		switch (RatingEnum.values()[rating]) {
 			case NO_RATING: {
@@ -137,6 +132,11 @@ public class MessageService {
 				throw new InconsistentRatingException(ErrorMessages.INCONSISTENT_RATING);
 			}
 		}
+
+		// Note that publisherList contains the publishers in the same order as we loaded into the Flux.zip() above.
+		Message ratedMessage = publisherList.getT1();
+		User raterUser = publisherList.getT2();
+		User messageOwner = publisherList.getT3();
 
 		List<User> usersToSave = new ArrayList<>();
 		usersToSave.add(raterUser);
