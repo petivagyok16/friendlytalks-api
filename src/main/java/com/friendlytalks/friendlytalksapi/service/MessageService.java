@@ -1,12 +1,11 @@
 package com.friendlytalks.friendlytalksapi.service;
 
 import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
+import com.friendlytalks.friendlytalksapi.common.ExceptionThrower;
 import com.friendlytalks.friendlytalksapi.common.RatingBuilder;
 import com.friendlytalks.friendlytalksapi.common.RatingEnum;
 import com.friendlytalks.friendlytalksapi.exceptions.InconsistentRatingException;
-import com.friendlytalks.friendlytalksapi.exceptions.MessageNotFound;
 import com.friendlytalks.friendlytalksapi.exceptions.MessageNotFoundAtUser;
-import com.friendlytalks.friendlytalksapi.exceptions.MessageWasDeletedButUserNotFound;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.Message;
 import com.friendlytalks.friendlytalksapi.model.RateMessageRequestBody;
@@ -15,10 +14,8 @@ import com.friendlytalks.friendlytalksapi.repository.MessageRepository;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -64,12 +61,12 @@ public class MessageService {
 
 		return this.messageRepository.findById(messageId)
 						.single()
-						.doOnError(this::messageNotFound)
+						.doOnError(ExceptionThrower::messageNotFound)
 						.flatMap(message ->
 										this.messageRepository.deleteById(messageId)
 										.then(this.userRepository.findById(message.getUserId())
 														.single()
-														.doOnError(this::messageWasDeletedButUserNotFound)
+														.doOnError(ExceptionThrower::messageWasDeletedButUserNotFound)
 														.flatMap(user -> {
 																if (user.getMessages().contains(messageId)) {
 																	user.getMessages().remove(messageId);
@@ -86,7 +83,7 @@ public class MessageService {
 
 		return this.messageRepository.findById(id)
 						.single()
-						.doOnError(this::messageNotFound)
+						.doOnError(ExceptionThrower::messageNotFound)
 						.flatMap(message -> {
 							message.setContent(newContent);
 
@@ -103,7 +100,7 @@ public class MessageService {
 								this.userRepository.findById(raterUserId),
 								this.userRepository.findUserByMessage(messageId))
 						.single()
-						.doOnError(this::handleDatabaseError)
+						.doOnError(ExceptionThrower::handleDatabaseError)
 						.publishOn(Schedulers.parallel())
 						.flatMap(publisherList -> this.rateMessage(rating, raterUserId, messageId, publisherList))
 						.then(Mono.just(ResponseEntity.ok().build()));
@@ -150,19 +147,6 @@ public class MessageService {
 							this.messageRepository.save(ratedMessage))
 						.publishOn(Schedulers.parallel())
 						.collectList();
-	}
-
-	private void messageNotFound(Throwable error) {
-		throw new MessageNotFound(ErrorMessages.MESSAGE_NOT_FOUND);
-	}
-
-	private void messageWasDeletedButUserNotFound(Throwable error) {
-		throw new MessageWasDeletedButUserNotFound(ErrorMessages.MESSAGE_DELETED_BUT_USER_NOT_FOUND);
-	}
-
-	private void handleDatabaseError(Throwable error) {
-		// TODO: make this more specified (if message/user not found show that error, if other db error throws show that)
-		throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ErrorMessages.DATABASE_ERROR);
 	}
 
 }

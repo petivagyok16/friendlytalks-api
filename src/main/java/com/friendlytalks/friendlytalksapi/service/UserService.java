@@ -1,8 +1,8 @@
 package com.friendlytalks.friendlytalksapi.service;
 
 import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
+import com.friendlytalks.friendlytalksapi.common.ExceptionThrower;
 import com.friendlytalks.friendlytalksapi.exceptions.EditUserNotAllowed;
-import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
 import com.friendlytalks.friendlytalksapi.model.EditedUser;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.Message;
@@ -47,14 +47,14 @@ public class UserService {
 	public Mono<ResponseEntity<HttpResponseWrapper<User>>> getUserProfile(String id) {
 		return this.userRepository.findById(id)
 						.single()
-						.doOnError(this::userNotFound)
+						.doOnError(ExceptionThrower::userNotFound)
 						.flatMap(user -> Mono.just(ResponseEntity.ok().body(new HttpResponseWrapper<>(user))));
 	}
 
 	public Mono<ResponseEntity> followUser(String followerId, String toFollowId) {
 		return this.userRepository.findById(followerId)
 						.single()
-						.doOnError(this::userNotFound)
+						.doOnError(ExceptionThrower::userNotFound)
 						.flatMap(user -> {
 							if (user.getRelations().getFollowing().contains(toFollowId)) {
 								// Un-follow logic (user already followed the other user)
@@ -84,7 +84,7 @@ public class UserService {
 	public Mono<ResponseEntity<HttpResponseWrapper<User>>> editUser(String userId, EditedUser editedUser, String bearerToken) {
 		return this.userRepository.findById(userId)
 						.single()
-						.doOnError(this::userNotFound)
+						.doOnError(ExceptionThrower::userNotFound)
 						.flatMap(user -> {
 							if (this.checkUsernames(bearerToken, user.getUsername())) {
 								return Mono.just(user);
@@ -106,7 +106,7 @@ public class UserService {
 	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> getUserFollowers(String userId) {
 		return this.userRepository.findById(userId)
 						.single()
-						.doOnError(this::userNotFound)
+						.doOnError(ExceptionThrower::userNotFound)
 						.flatMap(user -> this.userRepository.findAllById(user.getRelations().getFollowers()).collectList())
 						.map(users -> ResponseEntity.ok().body(new HttpResponseWrapper<>(users)));
 
@@ -115,7 +115,7 @@ public class UserService {
 	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> getUserFollowings(String userId) {
 		return this.userRepository.findById(userId)
 						.single()
-						.doOnError(this::userNotFound)
+						.doOnError(ExceptionThrower::userNotFound)
 						.flatMap(user -> this.userRepository.findAllById(user.getRelations().getFollowing()).collectList())
 						.map(users -> ResponseEntity.ok().body(new HttpResponseWrapper<>(users)));
 
@@ -124,7 +124,7 @@ public class UserService {
 	public Mono<ResponseEntity<HttpResponseWrapper<List<Message>>>> getFollowingMessages(String userId) {
 		return this.userRepository.findById(userId)
 						.single()
-						.doOnError(this::userNotFound)
+						.doOnError(ExceptionThrower::userNotFound)
 						.flatMap(user -> this.messageRepository.findAllMessageByUserId(user.getRelations().getFollowing()).collectList())
 						.map(messages -> ResponseEntity.ok().body(new HttpResponseWrapper<>(messages)));
 
@@ -136,11 +136,6 @@ public class UserService {
 						.collectList()
 						.flatMap(users -> Mono.just(ResponseEntity.ok().body(new HttpResponseWrapper<>(users))));
 
-	}
-
-	private void userNotFound(Throwable error) {
-		log.error("User not found: " + error);
-		throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
 	}
 
 	private boolean checkUsernames(String bearerToken, String username) {
