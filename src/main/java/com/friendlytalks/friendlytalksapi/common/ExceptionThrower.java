@@ -23,9 +23,8 @@ public class ExceptionThrower {
 		throw new UserNotFoundException(ErrorMessages.USER_NOT_FOUND);
 	}
 
-	public static void handleDatabaseError(Throwable error) {
-		// TODO: make this more specified (if message/user not found show that error, if other db error throws show that)
-		throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ErrorMessages.DATABASE_ERROR);
+	public static void emptySourceError(Throwable error) {
+		throw new ResponseStatusException(HttpStatus.CONFLICT, ErrorMessages.SOURCE_NOT_FOUND);
 	}
 
 }
