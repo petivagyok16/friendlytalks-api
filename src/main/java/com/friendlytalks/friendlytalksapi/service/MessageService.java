@@ -6,6 +6,7 @@ import com.friendlytalks.friendlytalksapi.common.RatingEnum;
 import com.friendlytalks.friendlytalksapi.exceptions.InconsistentRatingException;
 import com.friendlytalks.friendlytalksapi.exceptions.MessageNotFound;
 import com.friendlytalks.friendlytalksapi.exceptions.MessageNotFoundAtUser;
+import com.friendlytalks.friendlytalksapi.exceptions.MessageWasDeletedButUserNotFound;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.Message;
 import com.friendlytalks.friendlytalksapi.model.RateMessageRequestBody;
@@ -64,8 +65,11 @@ public class MessageService {
 		return this.messageRepository.findById(messageId)
 						.single()
 						.doOnError(this::messageNotFound)
-						.flatMap(message -> this.messageRepository.deleteById(messageId)
+						.flatMap(message ->
+										this.messageRepository.deleteById(messageId)
 										.then(this.userRepository.findById(message.getUserId())
+														.single()
+														.doOnError(this::messageWasDeletedButUserNotFound)
 														.flatMap(user -> {
 																if (user.getMessages().contains(messageId)) {
 																	user.getMessages().remove(messageId);
@@ -150,6 +154,10 @@ public class MessageService {
 
 	private void messageNotFound(Throwable error) {
 		throw new MessageNotFound(ErrorMessages.MESSAGE_NOT_FOUND);
+	}
+
+	private void messageWasDeletedButUserNotFound(Throwable error) {
+		throw new MessageWasDeletedButUserNotFound(ErrorMessages.MESSAGE_DELETED_BUT_USER_NOT_FOUND);
 	}
 
 	private void handleDatabaseError(Throwable error) {
