@@ -10,4 +10,5 @@ public class ErrorMessages {
 	public static final String EDIT_USER_NOT_ALLOWED = "Editing the user is not allowed!";
 	public static final String INCONSISTENT_RATING = "Rating does not correspond with the Rating Cases!";
 	public static final String DATABASE_ERROR = "Something went wrong during the process. Please try again later!";
+	public static final String MESSAGE_DELETED_BUT_USER_NOT_FOUND = "Message was deleted but it's owner is not exists anymore!";
 }
