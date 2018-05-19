@@ -43,7 +43,7 @@ public class MessageService {
 
 		return messageRepository.findAll()
 						.collectList()
-						.flatMap(messages -> Mono.just(new HttpResponseWrapper<>(messages)));
+						.map(messages -> new HttpResponseWrapper<>(messages));
 	}
 
 	public Mono<ResponseEntity> addNew(Message message) {
