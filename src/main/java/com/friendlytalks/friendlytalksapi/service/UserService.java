@@ -61,6 +61,8 @@ public class UserService {
 								user.getRelations().getFollowing().remove(toFollowId);
 								return this.userRepository.save(user)
 												.then(this.userRepository.findById(toFollowId))
+												.single()
+												.doOnError(ExceptionThrower::userNotFound)
 												.flatMap(followedUser -> {
 													followedUser.getRelations().getFollowers().remove(followerId);
 													return this.userRepository.save(followedUser);
@@ -71,6 +73,8 @@ public class UserService {
 								user.getRelations().getFollowing().add(toFollowId);
 								return this.userRepository.save(user)
 												.then(this.userRepository.findById(toFollowId))
+												.single()
+												.doOnError(ExceptionThrower::userNotFound)
 												.flatMap(followedUser -> {
 													followedUser.getRelations().getFollowers().add(followerId);
 													return this.userRepository.save(followedUser);
