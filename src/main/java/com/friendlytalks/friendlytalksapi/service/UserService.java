@@ -138,7 +138,7 @@ public class UserService {
 		String usernameRegex = ".*" + nameFragment + "*.";
 		return this.userRepository.findUsersByRegexpUsername(usernameRegex)
 						.collectList()
-						.flatMap(users -> Mono.just(ResponseEntity.ok().body(new HttpResponseWrapper<>(users))));
+						.map(users -> ResponseEntity.ok().body(new HttpResponseWrapper<>(users)));
 
 	}
 
