@@ -2,6 +2,7 @@ package com.friendlytalks.friendlytalksapi.service;
 
 import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
 import com.friendlytalks.friendlytalksapi.common.ExceptionThrower;
+import com.friendlytalks.friendlytalksapi.converters.UserConverter;
 import com.friendlytalks.friendlytalksapi.exceptions.EditUserNotAllowed;
 import com.friendlytalks.friendlytalksapi.model.EditedUser;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
@@ -25,16 +26,19 @@ public class UserService {
 	private final UserRepository userRepository;
 	private final MessageRepository messageRepository;
 	private final JwtTokenUtil jwtTokenUtil;
+	private final UserConverter userConverter;
 
 	@Autowired
 	public UserService(
 					UserRepository userRepository,
 					MessageRepository messageRepository,
-					JwtTokenUtil jwtTokenUtil
+					JwtTokenUtil jwtTokenUtil,
+					UserConverter userConverter
 	) {
 		this.userRepository = userRepository;
 		this.messageRepository = messageRepository;
 		this.jwtTokenUtil = jwtTokenUtil;
+		this.userConverter = userConverter;
 	}
 
 	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> getAllUser() {
@@ -96,14 +100,7 @@ public class UserService {
 								throw new EditUserNotAllowed(ErrorMessages.EDIT_USER_NOT_ALLOWED);
 							}
 						})
-						.flatMap(user -> {
-							user.setCity(editedUser.getCity());
-							user.setEmail(editedUser.getEmail());
-							user.setFirstName(editedUser.getFirstName());
-							user.setLastName(editedUser.getLastName());
-							user.setPictureUrl(editedUser.getPictureUrl());
-							return this.userRepository.save(user);
-						})
+						.flatMap(user -> this.userRepository.save(this.userConverter.convert(editedUser, user)))
 						.map(user -> ResponseEntity.ok().body(new HttpResponseWrapper<>(user)));
 	}
 
@@ -131,7 +128,6 @@ public class UserService {
 						.doOnError(ExceptionThrower::userNotFound)
 						.flatMap(user -> this.messageRepository.findAllMessageByUserId(user.getRelations().getFollowing()).collectList())
 						.map(messages -> ResponseEntity.ok().body(new HttpResponseWrapper<>(messages)));
-
 	}
 
 	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> findUser(String nameFragment) {
