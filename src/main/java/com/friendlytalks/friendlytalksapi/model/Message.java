@@ -7,11 +7,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PastOrPresent;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 @Document(collection = "messages")
 @Data
@@ -47,26 +44,6 @@ public class Message {
 			this.meta = new Meta();
 		} else {
 			this.meta = meta;
-		}
-	}
-
-	// Dislikes and Likes stored as an inline Class inside Message
-	@Data
-	public static class Meta {
-
-		private Set<String> dislikes;
-		private Set<String> likes;
-
-		public Meta() {
-				this.likes = new HashSet<>();
-				this.dislikes = new HashSet<>();
-		}
-
-		public Meta(
-						@JsonProperty("dislikes") Set<String> dislikes,
-						@JsonProperty("likes") Set<String> likes) {
-				this.likes = likes;
-				this.dislikes = dislikes;
 		}
 	}
 }
