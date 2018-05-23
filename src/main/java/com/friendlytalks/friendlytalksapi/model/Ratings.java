@@ -24,31 +24,4 @@ public class Ratings {
 		this.my = my;
 		this.given = given;
 	}
-
-	@Getter
-	@Setter
-	@NoArgsConstructor
-	public static class RatingContainer {
-
-		private LinkedList<String> likes = new LinkedList<>();
-		private LinkedList<String> dislikes = new LinkedList<>();
-
-		public RatingContainer(
-						@JsonProperty("likes") LinkedList<String> likes,
-						@JsonProperty("dislikes") LinkedList<String> dislikes
-		) {
-
-			if (likes == null) {
-				this.likes = new LinkedList<>();
-			} else {
-				this.likes = likes;
-			}
-
-			if (dislikes == null) {
-				this.dislikes = new LinkedList<>();
-			} else {
-				this.dislikes = dislikes;
-			}
-		}
-	}
 }
