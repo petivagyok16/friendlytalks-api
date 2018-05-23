@@ -1,6 +1,7 @@
 package com.friendlytalks.friendlytalksapi.controller;
 
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
+import com.friendlytalks.friendlytalksapi.model.LoginResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.security.JwtAuthenticationRequest;
 import com.friendlytalks.friendlytalksapi.service.AuthenticationService;
@@ -31,7 +32,7 @@ public class AuthenticationController {
 					consumes = MediaType.APPLICATION_JSON_VALUE,
 					produces = MediaType.APPLICATION_JSON_VALUE
 	)
-	public Mono<ResponseEntity<HttpResponseWrapper<User>>> signIn(@Valid @RequestBody JwtAuthenticationRequest authenticationRequest) {
+	public Mono<ResponseEntity<LoginResponseWrapper<User>>> signIn(@Valid @RequestBody JwtAuthenticationRequest authenticationRequest) {
 		return this.authService.signIn(authenticationRequest);
 	}
 

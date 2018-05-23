@@ -6,6 +6,7 @@ import com.friendlytalks.friendlytalksapi.exceptions.UserAlreadyExistsException;
 import com.friendlytalks.friendlytalksapi.exceptions.UserNotFoundException;
 import com.friendlytalks.friendlytalksapi.exceptions.WrongCredentialsException;
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
+import com.friendlytalks.friendlytalksapi.model.LoginResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.User;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
 import com.friendlytalks.friendlytalksapi.security.CustomPasswordEncoder;
@@ -72,7 +73,7 @@ public class AuthenticationService {
 	 *
 	 * @return HTTP 200, with Jwt token and user information
 	 */
-	public Mono<ResponseEntity<HttpResponseWrapper<User>>> signIn(JwtAuthenticationRequest authenticationRequest) {
+	public Mono<ResponseEntity<LoginResponseWrapper<User>>> signIn(JwtAuthenticationRequest authenticationRequest) {
 		return this.userRepository.findUserByUsername(authenticationRequest.getUsername())
 						.single()
 						.doOnError(error -> {
@@ -84,7 +85,7 @@ public class AuthenticationService {
 								return Mono.just(
 												ResponseEntity.ok()
 																.contentType(MediaType.APPLICATION_JSON_UTF8)
-																.body(new HttpResponseWrapper<>(user, this.jwtTokenUtil.generateToken(user)))
+																.body(new LoginResponseWrapper<>(user, this.jwtTokenUtil.generateToken(user)))
 												);
 							} else {
 								throw new WrongCredentialsException(ErrorMessages.WRONG_CREDENTIALS);
