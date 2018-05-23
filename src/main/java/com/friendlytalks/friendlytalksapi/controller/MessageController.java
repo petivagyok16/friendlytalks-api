@@ -2,7 +2,7 @@ package com.friendlytalks.friendlytalksapi.controller;
 
 import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
 import com.friendlytalks.friendlytalksapi.model.Message;
-import com.friendlytalks.friendlytalksapi.model.MessageContent;
+import com.friendlytalks.friendlytalksapi.model.EditedMessage;
 import com.friendlytalks.friendlytalksapi.model.RateMessageRequestBody;
 import com.friendlytalks.friendlytalksapi.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +53,7 @@ public class MessageController {
 	 * @param newMessageContent The new message content
 	 */
 	@PatchMapping(value = "/{id}")
-	public Mono<ResponseEntity> editMessage(@NotNull @PathVariable("id") String id, @RequestBody MessageContent newMessageContent) {
+	public Mono<ResponseEntity> editMessage(@NotNull @PathVariable("id") String id, @RequestBody EditedMessage newMessageContent) {
 		return this.messageService.editMessage(id, newMessageContent);
 	}
 

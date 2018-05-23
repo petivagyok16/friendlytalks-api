@@ -83,7 +83,7 @@ public class MessageService {
 										));
 	}
 
-	public Mono<ResponseEntity> editMessage(String id, MessageContent editedMessage) {
+	public Mono<ResponseEntity> editMessage(String id, EditedMessage editedMessage) {
 
 		return this.messageRepository.findById(id)
 						.single()

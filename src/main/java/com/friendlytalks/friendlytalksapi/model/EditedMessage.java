@@ -8,12 +8,12 @@ import javax.validation.constraints.NotBlank;
  * A wrapper class for editing existing messages.
  * The HttpRequestBody will only hold the new message content.
  */
-public class MessageContent {
+public class EditedMessage {
 
 	@NotBlank
 	private String content;
 
-	public MessageContent(@JsonProperty("content") String content) {
+	public EditedMessage(@JsonProperty("content") String content) {
 		this.content = content;
 	}
 
