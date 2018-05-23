@@ -4,12 +4,10 @@ import com.friendlytalks.friendlytalksapi.common.ErrorMessages;
 import com.friendlytalks.friendlytalksapi.common.ExceptionThrower;
 import com.friendlytalks.friendlytalksapi.common.RatingBuilder;
 import com.friendlytalks.friendlytalksapi.common.RatingEnum;
+import com.friendlytalks.friendlytalksapi.converters.MessageConverter;
 import com.friendlytalks.friendlytalksapi.exceptions.InconsistentRatingException;
 import com.friendlytalks.friendlytalksapi.exceptions.MessageNotFoundAtUser;
-import com.friendlytalks.friendlytalksapi.model.HttpResponseWrapper;
-import com.friendlytalks.friendlytalksapi.model.Message;
-import com.friendlytalks.friendlytalksapi.model.RateMessageRequestBody;
-import com.friendlytalks.friendlytalksapi.model.User;
+import com.friendlytalks.friendlytalksapi.model.*;
 import com.friendlytalks.friendlytalksapi.repository.MessageRepository;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -32,11 +30,17 @@ public class MessageService {
 
 	private final MessageRepository messageRepository;
 	private final UserRepository userRepository;
+	private final MessageConverter messageConverter;
 
 	@Autowired
-	public MessageService(MessageRepository messageRepository, UserRepository userRepository) {
+	public MessageService(
+					MessageRepository messageRepository,
+					UserRepository userRepository,
+					MessageConverter messageConverter
+					) {
 		this.messageRepository = messageRepository;
 		this.userRepository = userRepository;
+		this.messageConverter = messageConverter;
 	}
 
 	public Mono<HttpResponseWrapper<List<Message>>> getAllMessage() {
@@ -79,16 +83,13 @@ public class MessageService {
 										));
 	}
 
-	public Mono<ResponseEntity> editMessage(String id, String newContent) {
+	public Mono<ResponseEntity> editMessage(String id, MessageContent editedMessage) {
 
 		return this.messageRepository.findById(id)
 						.single()
 						.doOnError(ExceptionThrower::messageNotFound)
-						.flatMap(message -> {
-							message.setContent(newContent);
-
-							return this.messageRepository.save(message).then(Mono.just(ResponseEntity.ok().build()));
-						});
+						.flatMap(message -> this.messageRepository.save(this.messageConverter.convert(editedMessage, message))
+										.then(Mono.just(ResponseEntity.ok().build())));
 	}
 
 	public Mono<ResponseEntity> rateMessage(String messageId, RateMessageRequestBody rateMessageRequestBody) {
