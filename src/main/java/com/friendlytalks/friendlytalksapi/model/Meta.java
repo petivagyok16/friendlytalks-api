@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.HashSet;
 import java.util.Set;
 
-// Dislikes and Likes stored as an inline Class inside Message
+// Dislikes and Likes stored in Message class
 @Data
 public class Meta {
 
