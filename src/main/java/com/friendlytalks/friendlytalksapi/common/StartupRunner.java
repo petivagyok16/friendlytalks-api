@@ -3,6 +3,7 @@ package com.friendlytalks.friendlytalksapi.common;
 import com.friendlytalks.friendlytalksapi.model.*;
 import com.friendlytalks.friendlytalksapi.repository.MessageRepository;
 import com.friendlytalks.friendlytalksapi.repository.UserRepository;
+import com.friendlytalks.friendlytalksapi.security.CustomPasswordEncoder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -15,14 +16,20 @@ public class StartupRunner implements CommandLineRunner {
 
 	private final MessageRepository messageRepository;
 	private final UserRepository userRepository;
+	private final CustomPasswordEncoder passwordEncryptor;
 
-	public StartupRunner(MessageRepository messageRepository, UserRepository userRepository) {
+	public StartupRunner(
+					MessageRepository messageRepository,
+					UserRepository userRepository,
+					CustomPasswordEncoder passwordEncryptor
+	) {
 		this.messageRepository = messageRepository;
 		this.userRepository = userRepository;
+		this.passwordEncryptor = passwordEncryptor;
 	}
 
 	@Override
-	public void run(String... args) throws Exception {
+	public void run(String... args) {
 		log.info(" ------- Loading dummy data into MongoDB ------- ");
 		this.addUsers();
 		this.addMessages();
@@ -71,12 +78,12 @@ public class StartupRunner implements CommandLineRunner {
 
 		mockUser1Ratings.setMy(myRatingsContainer);
 		mockUser1Ratings.setGiven(givenRatingsContainer);
-
+		String hashedPassword1 = this.passwordEncryptor.encode("password");
 		User katkun = new User(
 						"mockUser1",
 						"katkun",
 						"katkun@asd.com",
-						"password",
+						hashedPassword1,
 						"kat",
 						"kun",
 						"Budapest",
@@ -137,7 +144,7 @@ public class StartupRunner implements CommandLineRunner {
 						"mockUser2",
 						"petplc",
 						"petplc@asd.com",
-						"password",
+						hashedPassword1,
 						"pet",
 						"plc",
 						"Budapest",
@@ -192,12 +199,12 @@ public class StartupRunner implements CommandLineRunner {
 
 		mockUser3Ratings.setMy(myRatingsContainer3);
 		mockUser3Ratings.setGiven(givenRatingsContainer3);
-
+		String hashedPassword2 = this.passwordEncryptor.encode("test");
 		User test = new User(
 						"testUser",
 						"test",
 						"test@test.com",
-						"test",
+						hashedPassword2,
 						"test",
 						"test",
 						"test",
@@ -214,9 +221,7 @@ public class StartupRunner implements CommandLineRunner {
 		users.add(katkun);
 		users.add(petplc);
 		users.add(test);
-		this.userRepository.saveAll(users).collectList().subscribe(savedUsers -> {
-			log.info(" ----- Users have been loaded -----");
-		});
+		this.userRepository.saveAll(users).collectList().subscribe(savedUsers -> log.info(" ----- Users have been loaded -----"));
 	}
 
 	private void addMessages() {
@@ -328,9 +333,7 @@ public class StartupRunner implements CommandLineRunner {
 		messages.add(testUserMessage1);
 		messages.add(testUserMessage2);
 
-		this.messageRepository.saveAll(messages).collectList().subscribe(savedMessages -> {
-			log.info(" ----- Messages have been loaded ----- ");
-		});
+		this.messageRepository.saveAll(messages).collectList().subscribe(savedMessages -> log.info(" ----- Messages have been loaded ----- "));
 	}
 
 }
