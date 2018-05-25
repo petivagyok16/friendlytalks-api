@@ -58,7 +58,7 @@ public class JwtAuthenticationConverter implements Function<ServerWebExchange, M
 					log.error("an error occured during getting username from token", e);
 					return Mono.error(new GetUsernameFromTokenException("An error occurred during validating the token!"));
 				} catch (Exception e) {
-					return Mono.error(new InvalidTokenException("Token is expired!"));
+					return Mono.error(new InvalidTokenException("Token is invalid!"));
 				}
 			} else {
 				log.warn("couldn't find bearer string, will ignore the header");
