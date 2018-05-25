@@ -9,6 +9,7 @@ import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
+import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -64,4 +65,10 @@ public class ReactiveWebSecurity {
 			.logout().disable();
 		return http.build();
 	}
+
+	@Bean
+	public WebSessionServerSecurityContextRepository securityContextRepository() {
+		return new WebSessionServerSecurityContextRepository();
+	}
+
 }

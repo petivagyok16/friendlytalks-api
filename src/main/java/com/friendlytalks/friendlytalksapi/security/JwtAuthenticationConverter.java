@@ -1,7 +1,7 @@
 package com.friendlytalks.friendlytalksapi.security;
 
+import com.friendlytalks.friendlytalksapi.exceptions.GetUsernameFromTokenException;
 import com.friendlytalks.friendlytalksapi.exceptions.InvalidTokenException;
-import com.friendlytalks.friendlytalksapi.exceptions.WrongCredentialsException;
 import com.friendlytalks.friendlytalksapi.service.ReactiveUserDetailsServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.function.Function;
 
@@ -57,29 +56,23 @@ public class JwtAuthenticationConverter implements Function<ServerWebExchange, M
 					username = jwtTokenUtil.getUsernameFromToken(authToken);
 				} catch (IllegalArgumentException e) {
 					log.error("an error occured during getting username from token", e);
+					return Mono.error(new GetUsernameFromTokenException("An error occurred during validating the token!"));
 				} catch (Exception e) {
-					log.warn("the token is expired and not valid anymore", e);
+					return Mono.error(new InvalidTokenException("Token is expired!"));
 				}
 			} else {
 				log.warn("couldn't find bearer string, will ignore the header");
+				return Mono.error(new InvalidTokenException("You can't access the requested resource due to invalid or missing authentication token!"));
 			}
 
 			log.info("checking authentication for user " + username);
 			if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-				if (jwtTokenUtil.validateToken(authToken)) {
-					log.info("authenticated user " + username + ", setting security context");
-					final String token = authToken;
-
-					return this.userDetailsService.findByUsername(username)
-									.publishOn(Schedulers.parallel())
-									.switchIfEmpty(Mono.error(new WrongCredentialsException("Wrong Credentials!")))
-									.map(u -> new JwtAuthenticationToken(token, u.getUsername(), u.getAuthorities()));
-				}
+				return Mono.just(new JwtPreAuthenticationToken(authToken, bearerRequestHeader, username));
 			}
 
-			return Mono.just(authentication);
+			return Mono.empty();
 		} catch (Exception e) {
-			throw new InvalidTokenException("Invalid token...");
+			return Mono.error(new InvalidTokenException("Invalid token!"));
 		}
 	}
 }

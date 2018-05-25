@@ -19,7 +19,7 @@ public class JwtAuthenticationWebFilter extends AuthenticationWebFilter {
 		setAuthenticationConverter(converter);
 		setAuthenticationFailureHandler(new ServerAuthenticationEntryPointFailureHandler(entryPoint));
 		setRequiresAuthenticationMatcher(new JwtHeadersExchangeMatcher());
-		setRequiresAuthenticationMatcher(new PathPatternParserServerWebExchangeMatcher(SecurityConstants.API_ROUTE));
+//		setRequiresAuthenticationMatcher(new PathPatternParserServerWebExchangeMatcher(SecurityConstants.API_ROUTE));
 
 	}
 
