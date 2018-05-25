@@ -1,5 +1,6 @@
 package com.friendlytalks.friendlytalksapi.security;
 
+import com.friendlytalks.friendlytalksapi.exceptions.InvalidTokenException;
 import com.friendlytalks.friendlytalksapi.exceptions.WrongCredentialsException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
@@ -46,7 +47,7 @@ public class CustomReactiveAuthenticationManager implements ReactiveAuthenticati
 	}
 
 	private <T> Mono<T> raiseBadCredentials() {
-		return Mono.error(new WrongCredentialsException("Invalid Credentials"));
+		return Mono.error(new WrongCredentialsException("Invalid Credentials!"));
 	}
 
 	private Mono<UserDetails> authenticateToken(final JwtPreAuthenticationToken jwtPreAuthenticationToken) {
@@ -59,11 +60,13 @@ public class CustomReactiveAuthenticationManager implements ReactiveAuthenticati
 			if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 				if (jwtTokenUtil.validateToken(authToken)) {
 					log.info("authenticated user " + username + ", setting security context");
-					return this.userDetailsService.findByUsername(username);
+					return this.userDetailsService.findByUsername(username)
+									.publishOn(Schedulers.parallel())
+									.switchIfEmpty(Mono.error(new InvalidTokenException("Token cannot be associated to an existing user!")));
 				}
 			}
 		} catch (Exception e) {
-			return Mono.error(new WrongCredentialsException("Invalid token..."));
+			return Mono.error(new InvalidTokenException("Invalid token..."));
 		}
 		return Mono.empty();
 	}
