@@ -6,12 +6,14 @@ import com.friendlytalks.friendlytalksapi.repository.UserRepository;
 import com.friendlytalks.friendlytalksapi.security.CustomPasswordEncoder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
 @Slf4j
 @Component
+@Profile("localDB")
 public class StartupRunner implements CommandLineRunner {
 
 	private final MessageRepository messageRepository;
