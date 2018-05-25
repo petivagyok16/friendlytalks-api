@@ -72,7 +72,7 @@ public class JwtAuthenticationConverter implements Function<ServerWebExchange, M
 
 			return Mono.empty();
 		} catch (Exception e) {
-			return Mono.error(new InvalidTokenException("Invalid token!"));
+			throw new InvalidTokenException("Invalid token...");
 		}
 	}
 }
