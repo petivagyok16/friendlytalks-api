@@ -44,14 +44,12 @@ public class MessageService {
 	}
 
 	public Mono<HttpResponseWrapper<List<Message>>> getAllMessage() {
-
 		return messageRepository.findAll()
 						.collectList()
 						.map(messages -> new HttpResponseWrapper<>(messages));
 	}
 
 	public Mono<ResponseEntity> addNew(Message message) {
-
 		return this.messageRepository.save(message)
 						.flatMap(savedMessage -> this.userRepository.findById(savedMessage.getUserId())
 										.flatMap(user -> {
@@ -62,7 +60,6 @@ public class MessageService {
 	}
 
 	public Mono<ResponseEntity> deleteMessage(String messageId) {
-
 		return this.messageRepository.findById(messageId)
 						.single()
 						.doOnError(ExceptionThrower::messageNotFound)
@@ -84,7 +81,6 @@ public class MessageService {
 	}
 
 	public Mono<ResponseEntity> editMessage(String id, EditedMessage editedMessage) {
-
 		return this.messageRepository.findById(id)
 						.single()
 						.doOnError(ExceptionThrower::messageNotFound)
