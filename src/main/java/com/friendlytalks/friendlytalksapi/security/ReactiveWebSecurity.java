@@ -66,9 +66,4 @@ public class ReactiveWebSecurity {
 		return http.build();
 	}
 
-	@Bean
-	public WebSessionServerSecurityContextRepository securityContextRepository() {
-		return new WebSessionServerSecurityContextRepository();
-	}
-
 }
