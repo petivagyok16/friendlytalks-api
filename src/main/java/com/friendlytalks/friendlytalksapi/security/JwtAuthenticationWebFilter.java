@@ -3,7 +3,6 @@ package com.friendlytalks.friendlytalksapi.security;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.authentication.ServerAuthenticationEntryPointFailureHandler;
-import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -19,7 +18,6 @@ public class JwtAuthenticationWebFilter extends AuthenticationWebFilter {
 		setAuthenticationConverter(converter);
 		setAuthenticationFailureHandler(new ServerAuthenticationEntryPointFailureHandler(entryPoint));
 		setRequiresAuthenticationMatcher(new JwtHeadersExchangeMatcher());
-//		setRequiresAuthenticationMatcher(new PathPatternParserServerWebExchangeMatcher(SecurityConstants.API_ROUTE));
 
 	}
 
