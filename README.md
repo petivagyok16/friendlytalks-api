@@ -11,7 +11,7 @@ in Java + Spring 5
 - install Lombok plugin inside IntelliJ (preferences/plugins/browse plugins)
 - Run a MongoDB container using Docker: `docker run -p 27071:27017 -d mongo`
 - Use your favorite mongo client to visit mongoDB e.g. [Robo 3T](https://robomongo.org/)
-- If you experience issues during the startup consider to click `File/Invalidate Caches/restart`
+- If you are experiencing issues during the startup consider to click `File/Invalidate Caches/restart`
  in IntelliJ and/or inside `Preferences/Settings` -> `Build/Execution, Deployment` -> `Compiler` -> `Annotation Processors`
  click `Enable annotation processing`
 
