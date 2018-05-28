@@ -18,7 +18,7 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/message")
+@RequestMapping("/api/v1/messages")
 @Validated
 @CrossOrigin(origins = "*")
 public class MessageController {
@@ -57,7 +57,7 @@ public class MessageController {
 		return this.messageService.editMessage(id, newMessageContent);
 	}
 
-	@PatchMapping(value = "/rate/{messageId}")
+	@PatchMapping(value = "/{messageId}/rate")
 	public Mono<ResponseEntity> rateMessage(@NotNull @PathVariable("messageId") String messageId, @Valid @RequestBody RateMessageRequestBody rateMessageRequestBody) {
 		return this.messageService.rateMessage(messageId, rateMessageRequestBody);
 	}
