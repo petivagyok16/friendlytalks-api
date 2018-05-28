@@ -19,7 +19,7 @@ import java.util.List;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
 @RestController
-@RequestMapping(path = "/api/v1/user", produces = { APPLICATION_JSON_UTF8_VALUE })
+@RequestMapping(path = "/api/v1/users", produces = { APPLICATION_JSON_UTF8_VALUE })
 @CrossOrigin(origins = "*")
 @Validated
 public class UserController {
@@ -47,22 +47,22 @@ public class UserController {
 		return this.userService.followUser(followerId, toFollowId);
 	}
 
-	@GetMapping(path = "/followers/{userId}")
+	@GetMapping(path = "/{userId}/followers")
 	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> getUserFollowers(@NotNull @PathVariable("userId") String userId) {
 		return this.userService.getUserFollowers(userId);
 	}
 
-	@GetMapping(path = "/following/{userId}")
+	@GetMapping(path = "/{userId}/following")
 	public Mono<ResponseEntity<HttpResponseWrapper<List<User>>>> getUserFollowings(@NotNull @PathVariable("userId") String userId) {
 		return this.userService.getUserFollowings(userId);
 	}
 
-	@GetMapping(path = "/following-messages/{userId}")
+	@GetMapping(path = "/{userId}/following-messages")
 	public Mono<ResponseEntity<HttpResponseWrapper<List<Message>>>> getFollowingMessages(@NotNull @PathVariable("userId") String userId) {
 		return this.userService.getFollowingMessages(userId);
 	}
 
-	@PatchMapping(path = "/edit/{userId}")
+	@PatchMapping(path = "/{userId}/edit")
 	public Mono<ResponseEntity<HttpResponseWrapper<User>>> editUser(@NotNull @PathVariable("userId") String userId, @Valid @RequestBody EditedUser editedUser, @RequestHeader(value = "Authorization") String bearerToken) {
 		return this.userService.editUser(userId, editedUser, bearerToken);
 	}
