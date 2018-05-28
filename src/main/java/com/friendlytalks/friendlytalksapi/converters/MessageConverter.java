@@ -25,6 +25,7 @@ public class MessageConverter implements Converter<EditedMessage, Message> {
 		}
 
 		message.setContent(editedMessage.getContent());
+		message.setCreated_at(editedMessage.getCreated_at());
 		return message;
 	}
 }
