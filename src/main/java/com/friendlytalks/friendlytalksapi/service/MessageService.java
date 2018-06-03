@@ -51,7 +51,7 @@ public class MessageService {
 
 	public Mono<ResponseEntity> addNew(Message message) {
 		return this.messageRepository.save(message)
-						.flatMap(savedMessage -> this.userRepository.findById(savedMessage.getUserId())
+						.flatMap(savedMessage -> this.userRepository.findById(savedMessage.getPartialUser().getId())
 										.flatMap(user -> {
 											user.getMessages().add(savedMessage.getId());
 											return this.userRepository.save(user)
@@ -65,7 +65,7 @@ public class MessageService {
 						.doOnError(ExceptionThrower::messageNotFound)
 						.flatMap(message ->
 										this.messageRepository.deleteById(messageId)
-										.then(this.userRepository.findById(message.getUserId())
+										.then(this.userRepository.findById(message.getPartialUser().getId())
 														.single()
 														.doOnError(ExceptionThrower::messageWasDeletedButUserNotFound)
 														.flatMap(user -> {

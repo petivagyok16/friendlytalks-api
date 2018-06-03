@@ -24,21 +24,21 @@ public class Message {
 	@PastOrPresent
 	private Date created_at;
 
-	@NotBlank(message = "No user was attached to the message!")
-	private String userId;
-
 	private Meta meta;
+
+	private PartialUser partialUser;
 
 	public Message(
 					@JsonProperty("id") String id,
 					@JsonProperty("content") String content,
 					@JsonProperty("created_at") Date created_at,
 					@JsonProperty("meta") Meta meta,
-					@JsonProperty("userId") String userId) {
+					@JsonProperty("partialUser") PartialUser partialUser
+	) {
 		this.id = id;
 		this.content = content;
 		this.created_at = created_at;
-		this.userId = userId;
+		this.partialUser = partialUser;
 
 		if (meta == null) {
 			this.meta = new Meta();
