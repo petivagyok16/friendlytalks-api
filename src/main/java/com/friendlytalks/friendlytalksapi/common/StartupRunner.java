@@ -232,17 +232,18 @@ public class StartupRunner implements CommandLineRunner {
 		Meta mockUser1Message1Meta = new Meta();
 		Set<String> mockUser1Message1Likes = new HashSet<>();
 		mockUser1Message1Likes.add("mockUser2");
-		mockUser1Message1Likes.add("testUser");
 		mockUser1Message1Meta.setLikes(mockUser1Message1Likes);
 		Set<String> mockUser1Message1Dislikes= new HashSet<>();
+		mockUser1Message1Dislikes.add("testUser");
 		mockUser1Message1Meta.setDislikes(mockUser1Message1Dislikes);
 
+		PartialUser mockPartialUser1 = new PartialUser("mockUser1", "https://i.imgur.com/vcVIGvg.jpg", "katkun");
 		Message mockUser1Message1 = new Message(
 						"mockUser1Message1",
 						"Mock user message 1 content",
 						new Date(),
 						mockUser1Message1Meta,
-						"mockUser1"
+						mockPartialUser1
 		);
 
 		// Mock user 1 message 2
@@ -259,24 +260,26 @@ public class StartupRunner implements CommandLineRunner {
 						"Mock user message 2 content",
 						new Date(),
 						mockUser1Message1Meta,
-						"mockUser1"
+						mockPartialUser1
 		);
 
 		// Mock user 2 message 1
 		Meta mockUser2Message1Meta = new Meta();
 		Set<String> mockUser2Message1Likes = new HashSet<>();
 		mockUser2Message1Likes.add("mockUser1");
-		mockUser2Message1Likes.add("testUser");
 		mockUser2Message1Meta.setLikes(mockUser2Message1Likes);
 		Set<String> mockUser2Message1Dislikes= new HashSet<>();
+		mockUser1Message1Dislikes.add("testUser");
 		mockUser2Message1Meta.setDislikes(mockUser2Message1Dislikes);
+
+		PartialUser mockPartialUser2 = new PartialUser("mockUser2", "http://tventhusiast.nintendoenthusiast.com/wp-content/uploads/sites/8/2014/06/truedetective-1170x658.png", "petplc");
 
 		Message mockUser2Message1 = new Message(
 						"mockUser2Message1",
 						"Mock user message 1 content",
 						new Date(),
 						mockUser2Message1Meta,
-						"mockUser2"
+						mockPartialUser2
 		);
 
 		// Mock user 2 message 2
@@ -293,7 +296,7 @@ public class StartupRunner implements CommandLineRunner {
 						"Mock user 2 message 2 content",
 						new Date(),
 						mockUser2Message2Meta,
-						"mockUser2"
+						mockPartialUser2
 		);
 
 		// Mock user 3 message 1
@@ -304,12 +307,14 @@ public class StartupRunner implements CommandLineRunner {
 		Set<String> testUserMessage1Dislikes = new HashSet<>();
 		testUserMessage1Meta.setDislikes(testUserMessage1Dislikes);
 
+		PartialUser mockTestUser = new PartialUser("testUser", "http://wp.patheos.com.s3.amazonaws.com/blogs/faithwalkers/files/2013/03/bigstock-Test-word-on-white-keyboard-27134336.jpg", "test");
+
 		Message testUserMessage1 = new Message(
 						"testUserMessage1",
 						"Test user message 1 content",
 						new Date(),
 						testUserMessage1Meta,
-						"testUser"
+						mockTestUser
 		);
 
 		// Mock user 3 message 2
@@ -324,7 +329,7 @@ public class StartupRunner implements CommandLineRunner {
 						"Test user message 2 content",
 						new Date(),
 						testUserMessage2Meta,
-						"testUser"
+						mockTestUser
 		);
 
 		List<Message> messages = new ArrayList<>();
