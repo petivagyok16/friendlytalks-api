@@ -55,7 +55,7 @@ public class MessageService {
 										.flatMap(user -> {
 											user.getMessages().add(savedMessage.getId());
 											return this.userRepository.save(user)
-															.then(Mono.just(ResponseEntity.created(URI.create(String.format("messages/%s", message.getId()))).build()));
+															.then(Mono.just(ResponseEntity.ok().body(new HttpResponseWrapper<>(savedMessage))));
 										}));
 	}
 
