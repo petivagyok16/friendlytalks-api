@@ -44,12 +44,6 @@ public class MessageController {
 		return this.messageService.deleteMessage(id);
 	}
 
-	/**
-	 * We use PATCH here because client will send only the particular messageID and the changed content.
-	 * We do not want to transfer huge message objects via the wire if not necessary.
-	 * @param id
-	 * @param newMessageContent The new message content
-	 */
 	@PatchMapping(value = "/{id}")
 	public Mono<ResponseEntity> editMessage(@NotNull @PathVariable("id") String id, @RequestBody EditedMessage newMessageContent) {
 		return this.messageService.editMessage(id, newMessageContent);
